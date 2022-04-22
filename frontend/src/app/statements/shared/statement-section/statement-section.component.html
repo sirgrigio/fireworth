@@ -1,0 +1,82 @@
+<div *ngIf="section">
+  <div
+    id="collapsible"
+    [collapse]="isCollapsed"
+    [isAnimated]="true"
+  >
+    <app-statement-section
+      *ngFor="let sub of section.subsections"
+      [section]="sub"
+      [_recursive]="true"
+    ></app-statement-section>
+    <div
+      class="d-flex"
+      *ngFor="let item of section.items"
+    >
+      <app-cell
+        class="col-1"
+        [value]="item.name"
+        alignment="start"
+      ></app-cell>
+      <app-cell
+        class="col cell-bg-gray"
+        [value]="item.startValue| acct"
+        [prefix]="item.currency | csymbol"
+      ></app-cell>
+      <app-cell
+        class="col"
+        *ngFor="let value of item.values"
+        [value]="value | acct"
+        [prefix]="item.currency | csymbol"
+      ></app-cell>
+      <app-cell
+        class="col cell-bg-gray"
+        [value]="item.endValue | acct"
+        [prefix]="item.currency | csymbol"
+      ></app-cell>
+    </div>
+  </div>
+  <div
+    class="d-flex"
+    [ngClass]="_recursive ? '' : 'rounded-bottom'"
+    [style.border-bottom]="'0.2rem solid '+accentTextColor"
+  >
+    <app-cell
+      class="col-1 bold"
+      [ngClass]="_recursive? '' : 'cell-bg-gray'"
+      [value]="section.title"
+      [textColor]="accentTextColor"
+    >
+      <ng-template #suffix>
+        <fa-icon
+          class="ms-1"
+          [icon]="isCollapsed ? faAngleDown : faAngleUp"
+          (click)="isCollapsed = !isCollapsed"
+          [attr.aria-expanded]="!isCollapsed"
+          aria-controls="collapsible"
+          [style.cursor]="'pointer'"
+        ></fa-icon>
+      </ng-template>
+    </app-cell>
+    <app-cell
+      class="col bold cell-bg-gray"
+      [value]="section.total.startValue | acct"
+      [prefix]="section.total.currency | csymbol"
+      [textColor]="accentTextColor"
+    ></app-cell>
+    <app-cell
+      class="col bold"
+      [ngClass]="_recursive? '' : 'cell-bg-gray'"
+      *ngFor="let value of section.total.values"
+      [value]="value | acct"
+      [prefix]="section.total.currency | csymbol"
+      [textColor]="accentTextColor"
+    ></app-cell>
+    <app-cell
+      class="col bold cell-bg-gray"
+      [value]="section.total.endValue | acct"
+      [prefix]="section.total.currency | csymbol"
+      [textColor]="accentTextColor"
+    ></app-cell>
+  </div>
+</div>

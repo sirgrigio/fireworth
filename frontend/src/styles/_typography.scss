@@ -1,0 +1,42 @@
+@mixin font-face($family, $subfolder, $filename, $style, $weight) {
+  font-family: $family;
+  src: url('~assets/fonts/#{$subfolder}/#{$filename}.ttf') format("truetype");
+  font-style: $style;
+  font-weight: $weight;
+}
+
+@font-face {
+  @include font-face('Lato', 'Lato', 'Lato-Light', normal, lighter);
+}
+
+@font-face {
+  @include font-face('Lato', 'Lato', 'Lato-Regular', normal, normal);
+}
+
+@font-face {
+  @include font-face('Lato', 'Lato', 'Lato-Italic', italic, normal);
+}
+
+@font-face {
+  @include font-face('Lato', 'Lato', 'Lato-Bold', normal, bold);
+}
+
+@font-face {
+  @include font-face('Montserrat', 'Montserrat', 'Montserrat-Light', normal, lighter);
+}
+
+@font-face {
+  @include font-face('Montserrat', 'Montserrat', 'Montserrat-Regular', normal, normal);
+}
+
+@font-face {
+  @include font-face('Montserrat', 'Montserrat', 'Montserrat-Italic', italic, normal);
+}
+
+@font-face {
+  @include font-face('Montserrat', 'Montserrat', 'Montserrat-Medium', normal, 500);
+}
+
+@font-face {
+  @include font-face('Montserrat', 'Montserrat', 'Montserrat-SemiBold', normal, bold);
+}

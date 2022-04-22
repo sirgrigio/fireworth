@@ -1,0 +1,36 @@
+@use 'sass:color';
+@import 'variables';
+
+div.d-flex {
+
+    div {
+        color: inherit;
+        background-color: inherit;
+        font-size: $font-size-base * 0.8;
+    }
+}
+
+:host.bold {
+    font-weight: 700;
+}
+
+:host.fg {
+    &-green div {
+        color: $green;
+    }
+    &-red div {
+        color: $red;
+    }
+}
+
+:host.cell-bg {
+    &-gray div {
+        background-color: $gray-100; 
+    }
+    &-green div {
+        background-color: color.scale($green, $lightness: 75%); 
+    }
+    &-red div {
+        background-color: color.scale($red, $lightness: 75%); 
+    }
+}

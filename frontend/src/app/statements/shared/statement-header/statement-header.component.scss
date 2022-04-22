@@ -1,0 +1,19 @@
+@use 'sass:color';
+@import 'variables';
+
+div.d-flex {
+    background-color: $light;
+    border: 0.1rem solid $primary;
+    color: $primary;
+    font-size: $font-size-base * 0.8;
+    font-weight: bold;
+}
+
+div.col {
+    border-left: 0.1rem solid $primary;
+}
+
+div.emph {
+    background-color: $primary;
+    color: $light;
+}

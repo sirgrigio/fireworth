@@ -1,0 +1,12 @@
+<div
+  class="d-flex h-100 align-items-center px-2"
+  [ngClass]="'justify-content-'+alignment"
+  [style.color]="textColor"
+  [style.background-color]="bgColor"
+>
+  <div class="pe-1" *ngIf="prefix">{{prefix}}</div>
+  <ng-container *ngTemplateOutlet="prefix_view"></ng-container>
+  <div>{{value}}</div>
+  <div class="ps-1" *ngIf="suffix">{{suffix}}</div>
+  <ng-container *ngTemplateOutlet="suffix_view"></ng-container>
+</div>

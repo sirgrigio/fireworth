@@ -1,0 +1,60 @@
+<div class="row form-inline align-items-center">
+  <div
+    class="btn-group"
+    btnRadioGroup
+    [ngModel]="selectedDefaultFilterId"
+    (ngModelChange)="onSelectedDefaultFilterChange($event)"
+  >
+    <label
+      class="col-2 btn btn-outline-primary mb-0"
+      btnRadio="this_q"
+    >{{'PERIOD_PICKER.THIS_Q' | translate}}</label>
+    <label
+      class="col-2 btn btn-outline-primary mb-0"
+      btnRadio="this_y"
+    >{{'PERIOD_PICKER.THIS_Y' | translate}}</label>
+    <label
+    class="col-2 btn btn-outline-primary mb-0"
+    btnRadio="last_y"
+    >{{'PERIOD_PICKER.LAST_Y' | translate}}</label>
+    <label
+      class="col-2 btn btn-outline-primary mb-0"
+      btnRadio="last_4q"
+    >{{'PERIOD_PICKER.LAST_4Q' | translate}}</label>
+    <label
+      class="col-2 btn btn-outline-primary mb-0"
+      btnRadio="last_3y"
+    >{{'PERIOD_PICKER.LAST_3Y' | translate}}</label>
+    <label
+      class="col-2 btn btn-outline-primary mb-0"
+      btnRadio="custom"
+    >{{'PERIOD_PICKER.CUSTOM' | translate}}</label>
+  </div>
+</div>
+<div
+  class="row form-group mt-2 align-items-center"
+  *ngIf="selectedDefaultFilterId == 'custom'"
+>
+  <div class="col-8">
+    <input
+      type="text"
+      class="form-control"
+      bsDaterangepicker
+      #drp="bsDaterangepicker"
+      [placeholder]="'PERIOD_PICKER.RANGE_PLACEHOLDER' | translate"
+      [bsConfig]="bsConfig"
+      [bsValue]="rangeValues"
+      (bsValueChange)="onPickedRangeChange($event)"
+    >
+  </div>
+  <div class="col-4">
+    <label
+      class="btn btn-outline-primary w-100"
+      btnCheckbox
+      [ngModel]="selectedFilter?.byQuarter"
+      (ngModelChange)="onGroupByQuarterToggled($event)"
+      tabindex="0"
+      role="button"
+    >{{'PERIOD_PICKER.BY_QUARTER' | translate}}</label>
+  </div>
+</div>

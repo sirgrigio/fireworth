@@ -1,0 +1,35 @@
+{
+    "NAV": {
+        "HOME": "Home",
+        "ABOUT": "About",
+        "LEDGER": "Ledger",
+        "EXPENSES": "Expenses",
+        "STATEMENTS": "Statements",
+        "PROGRESS": "Progress",
+        "FORECASTING": "Forecasting"
+    },
+    "HOME": {
+        "PAGE_FROM": "This is from ",
+        "OPEN_DIALOG": "Open Dialog"
+    },
+    "ABOUT": {
+        "PAGE_FROM": "This is from ",
+        "TYPE_INTO_BOX_NOTICE": "Type into the box and receive a Greet!"
+    },
+    "STATEMENTS": {
+        "STATEMENT_HEADER": {
+            "ITEM": "Item"
+        },
+        "BALANCE_SHEET": "Balance Sheet"
+    },
+    "PERIOD_PICKER": {
+        "THIS_Q": "This quarter",
+        "THIS_Y": "This year",
+        "LAST_4Q": "Last 4 quarters",
+        "LAST_Y": "Last year",
+        "LAST_3Y": "Last 3 years", 
+        "CUSTOM": "Custom",
+        "BY_QUARTER": "Group by quarter",
+        "RANGE_PLACEHOLDER": "Pick a date range"
+    }
+}
