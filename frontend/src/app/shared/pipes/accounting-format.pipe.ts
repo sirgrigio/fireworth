@@ -9,7 +9,9 @@ export class AccountingFormatPipe implements PipeTransform {
   transform(value: number | null, precision: number = 0, ...args: unknown[]): string {
     const rounded = this.round(value, precision);
     return rounded && rounded != 0 ?
-      rounded > 0 ? rounded.toLocaleString('en-US') : `(${rounded.toLocaleString('en-US')})`
+      rounded > 0 ?
+        rounded.toLocaleString('en-US', { minimumFractionDigits: precision })
+        : `(${rounded.toLocaleString('en-US', { minimumFractionDigits: precision })})`
       : '\u2012';
   }
 
