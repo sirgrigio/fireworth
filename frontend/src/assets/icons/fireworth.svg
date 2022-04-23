@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg width="115.75mm" height="141.69mm" version="1.1" viewBox="0 0 115.74775 141.69322" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:xlink="http://www.w3.org/1999/xlink">
+ <metadata>
+  <rdf:RDF>
+   <cc:Work rdf:about="">
+    <dc:format>image/svg+xml</dc:format>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:title/>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <g transform="translate(65.433 -225.4)">
+  <g transform="rotate(56.153 80.219 -27.729)">
+   <rect id="rect8958" x="317.78" y="207.19" width="4" height="8" rx=".84785" ry=".84785" fill="#f2f2f2" style="paint-order:fill markers stroke"/>
+   <g fill="#f2f2f2" stroke="#f2f2f2">
+    <use width="100%" height="100%" xlink:href="#rect8958"/>
+    <use transform="matrix(.87469 .505 -.50899 .8816 154.19 -134.95)" width="100%" height="100%" xlink:href="#rect8958"/>
+    <use transform="matrix(.515 .89201 -.91265 .52692 359.71 -179.19)" width="100%" height="100%" xlink:href="#rect8958"/>
+    <use transform="matrix(0 1.06 -1.1074 0 568.05 -114.77)" width="100%" height="100%" xlink:href="#rect8958"/>
+    <use transform="matrix(-.55 .95263 -1.0205 -.58916 724.45 51.648)" width="100%" height="100%" xlink:href="#rect8958"/>
+    <use transform="matrix(-.99593 .575 -.63317 -1.0967 780.22 286.19)" width="100%" height="100%" xlink:href="#rect8958"/>
+    <use transform="matrix(-1.21 0 0 -1.3711 706.72 531.58)" width="100%" height="100%" xlink:href="#rect8958"/>
+    <use transform="matrix(-1.1085 -.64 .74607 -1.2922 507 718.57)" width="100%" height="100%" xlink:href="#rect8958"/>
+    <use transform="matrix(-.68 -1.1778 1.4109 -.8146 220.91 783.46)" width="100%" height="100%" xlink:href="#rect8958"/>
+    <use transform="matrix(0 -1.45 1.7819 0 -79.706 687.88)" width="100%" height="100%" xlink:href="#rect8958"/>
+    <use transform="matrix(.775 -1.3423 1.6886 .97492 -306.63 434.88)" width="100%" height="100%" xlink:href="#rect8958"/>
+    <use transform="matrix(1.4376 -.83 1.0664 1.847 -379.01 75.524)" width="100%" height="100%" xlink:href="#rect8958"/>
+    <use transform="matrix(1.78 0 0 2.3303 -249.43 -298.25)" width="100%" height="100%" xlink:href="#rect8958"/>
+    <use transform="matrix(1.6541 .955 -1.2711 2.2017 75.811 -574.81)" width="100%" height="100%" xlink:href="#rect8958"/>
+    <use transform="matrix(1.025 1.7754 -2.3975 1.3842 529.51 -653.86)" width="100%" height="100%" xlink:href="#rect8958"/>
+    <use transform="matrix(0 2.2 -3.0084 0 994.25 -479.33)" width="100%" height="100%" xlink:href="#rect8958"/>
+    <use transform="matrix(-1.18 2.0438 -2.825 -1.631 1330.5 -63.718)" width="100%" height="100%" xlink:href="#rect8958"/>
+    <use transform="matrix(-2.191 1.265 -1.7646 -3.0564 1416.1 504.89)" width="100%" height="100%" xlink:href="#rect8958"/>
+    <use transform="matrix(-2.71 0 0 -3.8096 1186.4 1078.3)" width="100%" height="100%" xlink:href="#rect8958"/>
+    <use transform="matrix(-2.5115 -1.45 2.0516 -3.5534 662.96 1484.5)" width="100%" height="100%" xlink:href="#rect8958"/>
+    <use transform="matrix(-1.55 -2.6847 3.8189 -2.2048 -40.723 1577)" width="100%" height="100%" xlink:href="#rect8958"/>
+    <use transform="matrix(0 -3.31 4.7289 0 -740.42 1282.7)" width="100%" height="100%" xlink:href="#rect8958"/>
+    <use transform="matrix(1.765 -3.0571 4.3828 2.5304 -1227.2 634.48)" width="100%" height="100%" xlink:href="#rect8958"/>
+    <use transform="matrix(3.2563 -1.88 2.7027 4.6812 -1327.4 -224.11)" width="100%" height="100%" xlink:href="#rect8958"/>
+   </g>
+  </g>
+ </g>
+</svg>
