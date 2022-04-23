@@ -1,0 +1,261 @@
+<div>
+  <ngx-datatable
+    #transactionsTable
+    class="bootstrap"
+    [rows]="transactions"
+    [limit]="100"
+    rowHeight="auto"
+    [rowClass]="rowClass"
+    [headerHeight]="50"
+    [footerHeight]="50"
+    [selected]="selected"
+    [selectAllRowsOnPage]="false"
+    [selectionType]="_selectionType.checkbox"
+    [columnMode]="_columnMode.force"
+  >
+    <ngx-datatable-column
+      [width]="36"
+      [sortable]="false"
+      [canAutoResize]="false"
+      [draggable]="false"
+      [resizeable]="false"
+      [cellClass]="cellClass"
+    >
+      <ng-template
+        ngx-datatable-header-template
+        let-value="value"
+        let-allRowsSelected="allRowsSelected"
+        let-selectFn="selectFn"
+      >
+        <input
+          type="checkbox"
+          class="form-check-input"
+          style="margin-top: 0.4rem;"
+          [checked]="allRowsSelected"
+          (change)="selectFn(!allRowsSelected)"
+        />
+      </ng-template>
+      <ng-template
+        ngx-datatable-cell-template
+        let-value="value"
+        let-isSelected="isSelected"
+        let-onCheckboxChangeFn="onCheckboxChangeFn"
+      >
+        <input
+          type="checkbox"
+          class="form-check-input"
+          style="margin-top: 0.4rem;"
+          [checked]="isSelected"
+          (change)="onCheckboxChangeFn($event)"
+        />
+      </ng-template>
+    </ngx-datatable-column>
+    <ngx-datatable-column
+      prop="date"
+      [name]="'MODELS.DATE' | translate"
+      [cellClass]="cellClass"
+    >
+      <ng-template
+        ngx-datatable-cell-template
+        let-row="row"
+        let-rowIndex="rowIndex"
+        let-value="value"
+      >
+        <div
+          class="w-100"
+          [title]="'VIEWS.LEDGER.TRANSACTIONS.CLICK_TO_EDIT' | translate"
+          (click)="startEditing(row, rowIndex)"
+        >
+          <app-txn-edit-date
+            [readonly]="!editing[rowIndex]"
+            [transaction]="txn(rowIndex)"
+            (dateChange)="setTxnDate($event)"
+          >
+          </app-txn-edit-date>
+        </div>
+      </ng-template>
+    </ngx-datatable-column>
+    <ngx-datatable-column
+      prop="accountName"
+      [name]="'MODELS.ACCOUNT' | translate"
+      [cellClass]="cellClass"
+    >
+      <ng-template
+        ngx-datatable-cell-template
+        let-row="row"
+        let-rowIndex="rowIndex"
+        let-value="value"
+      >
+        <div
+          class="w-100"
+          [title]="'VIEWS.LEDGER.TRANSACTIONS.CLICK_TO_EDIT' | translate"
+          (click)="startEditing(row, rowIndex)"
+        >
+          <app-txn-edit-account
+            [readonly]="!editing[rowIndex]"
+            [transaction]="txn(rowIndex)"
+            [accounts]="accounts"
+            (accountChange)="setTxnAccount($event)"
+          ></app-txn-edit-account>
+        </div>
+      </ng-template>
+    </ngx-datatable-column>
+    <ngx-datatable-column
+      prop="payeeName"
+      [name]="'MODELS.PAYEE' | translate"
+      [cellClass]="cellClass"
+    >
+      <ng-template
+        ngx-datatable-cell-template
+        let-rowIndex="rowIndex"
+        let-row="row"
+        let-value="value"
+      >
+        <div
+          class="w-100"
+          [title]="'VIEWS.LEDGER.TRANSACTIONS.CLICK_TO_EDIT' | translate"
+          (click)="startEditing(row, rowIndex)"
+        >
+          <app-txn-edit-payee
+            [readonly]="!editing[rowIndex]"
+            [transaction]="txn(rowIndex)"
+            [payees]="payees"
+            (payeeChange)="setTxnPayee($event)"
+          ></app-txn-edit-payee>
+        </div>
+      </ng-template>
+    </ngx-datatable-column>
+    <ngx-datatable-column
+      prop="categoryName"
+      [name]="'MODELS.CATEGORY' | translate"
+      [cellClass]="cellClass"
+    >
+      <ng-template
+        ngx-datatable-cell-template
+        let-row="row"
+        let-rowIndex="rowIndex"
+        let-value="value"
+      >
+        <div
+          class="w-100"
+          [title]="'VIEWS.LEDGER.TRANSACTIONS.CLICK_TO_EDIT' | translate"
+          (click)="startEditing(row, rowIndex)"
+        >
+          <app-txn-edit-category
+            [readonly]="!editing[rowIndex]"
+            [required]="txn(rowIndex)?.isExpense ?? true"
+            [transaction]="txn(rowIndex)"
+            [categories]="categories"
+            (categoryChange)="setTxnCategory($event)"
+          ></app-txn-edit-category>
+        </div>
+      </ng-template>
+    </ngx-datatable-column>
+    <ngx-datatable-column
+      prop="memo"
+      [name]="'MODELS.MEMO' | translate"
+      [cellClass]="cellClass"
+    >
+      <ng-template
+        ngx-datatable-cell-template
+        let-row="row"
+        let-rowIndex="rowIndex"
+        let-value="value"
+      >
+        <div
+          class="w-100"
+          [title]="'VIEWS.LEDGER.TRANSACTIONS.CLICK_TO_EDIT' | translate"
+          (click)="startEditing(row, rowIndex)"
+        >
+          <app-txn-edit-memo
+            [readonly]="!editing[rowIndex]"
+            [transaction]="txn(rowIndex)"
+            (memoChange)="setTxnMemo($event)"
+          ></app-txn-edit-memo>
+        </div>
+      </ng-template>
+    </ngx-datatable-column>
+    <ngx-datatable-column
+      prop="amount"
+      [name]="'MODELS.OUTFLOW' | translate"
+      [cellClass]="cellClass"
+    >
+      <ng-template
+        ngx-datatable-cell-template
+        let-row="row"
+        let-rowIndex="rowIndex"
+        let-value="value"
+      >
+        <div
+          class="w-100"
+          [title]="'VIEWS.LEDGER.TRANSACTIONS.CLICK_TO_EDIT' | translate"
+          (click)="startEditing(row, rowIndex)"
+        >
+          <app-txn-edit-amount
+            [readonly]="!editing[rowIndex]"
+            [outflow]="true"
+            [transaction]="value < 0 ? txn(rowIndex) : undefined"
+            [accounts]="accounts"
+            [currencies]="currencies"
+            [placeholder]="'MODELS.OUTFLOW' | translate"
+            (amountChange)="setTxnAmount($event.outflow, $event.amount)"
+            (currencyChange)="setTxnCurrency($event.outflow, $event.currency)"
+            (exchangeRateChange)="setTxnExchangeRate($event.outflow, $event.exchangeRate)"
+            (unitPriceChange)="setTxnUnitPrice($event.outflow, $event.unitPrice)"
+            (quantityChange)="setTxnQuantity($event.outflow, $event.quantity)"
+          ></app-txn-edit-amount>
+        </div>
+      </ng-template>
+    </ngx-datatable-column>
+    <ngx-datatable-column
+      prop="amount"
+      [name]="'MODELS.INFLOW' | translate"
+      [cellClass]="cellClass"
+    >
+      <ng-template
+        ngx-datatable-cell-template
+        let-row="row"
+        let-rowIndex="rowIndex"
+        let-value="value"
+      >
+        <div
+          class="w-100"
+          [title]="'VIEWS.LEDGER.TRANSACTIONS.CLICK_TO_EDIT' | translate"
+          (click)="startEditing(row, rowIndex)"
+        >
+          <app-txn-edit-amount
+            [readonly]="!editing[rowIndex]"
+            [outflow]="false"
+            [transaction]="value > 0 ? txn(rowIndex) : undefined"
+            [accounts]="accounts"
+            [currencies]="currencies"
+            [placeholder]="'MODELS.INFLOW' | translate"
+            (amountChange)="setTxnAmount($event.outflow, $event.amount)"
+            (currencyChange)="setTxnCurrency($event.outflow, $event.currency)"
+            (exchangeRateChange)="setTxnExchangeRate($event.outflow, $event.exchangeRate)"
+            (unitPriceChange)="setTxnUnitPrice($event.outflow, $event.unitPrice)"
+            (quantityChange)="setTxnQuantity($event.outflow, $event.quantity)"
+          ></app-txn-edit-amount>
+        </div>
+      </ng-template>
+    </ngx-datatable-column>
+    <ngx-datatable-row-detail [rowHeight]="31">
+      <ng-template
+        let-row="row"
+        let-expanded="expanded"
+        ngx-datatable-row-detail-template
+      >
+        <div class="d-flex justify-content-end pt-1 pb-1 ngx-datatable-cell-editing">
+          <button
+            class="btn btn-outline-primary btn-sm me-2 py-0 px-3"
+            (click)="doneEditing(row, true)"
+          >{{'COMMONS.CANCEL' | translate}}</button>
+          <button
+            class="btn btn-primary btn-sm me-2 py-0 px-3"
+            (click)="doneEditing(row)"
+          >{{'COMMONS.SAVE' | translate}}</button>
+        </div>
+      </ng-template>
+    </ngx-datatable-row-detail>
+  </ngx-datatable>
+</div>

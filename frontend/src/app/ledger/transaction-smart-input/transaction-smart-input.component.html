@@ -1,0 +1,27 @@
+<div class="d-flex w-100 align-items-center">
+  <button class="btn btn-primary btn-sm text-nowrap">
+    <fa-icon
+      class="me-1"
+      [icon]="faPlus"
+    ></fa-icon>
+    Add empty transaction
+  </button>
+  <span class="mx-2 text-small">or</span>
+  <div class="flex-fill d-flex input-group input-group-sm">
+    <div
+      #smartInput
+      contenteditable="true"
+      class="flex-fill form-control form-control-sm"
+      placeholder="Type here to quickly add a new transaction"
+      [innerHTML]="_processedInput"
+      (input)="onInputChange(smartInput.textContent)"
+    ></div>
+    <button class="btn btn-primary btn-sm text-nowrap input-group-text" (click)="submitSmartInput()">
+      <fa-icon
+        class="me-1"
+        [icon]="faBolt"
+      ></fa-icon>
+      Add
+    </button>
+  </div>
+</div>

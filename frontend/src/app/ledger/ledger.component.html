@@ -1,0 +1,10 @@
+<div class="container mb-3">
+  <app-transaction-smart-input
+    [accounts]="accounts"
+    [payees]="payees"
+    [accountFrequencyTable]="accountFrequencyTable"
+    [categoryFrequencyTable]="categoryFrequencyTable"
+    (smartInput)="onSmartInput($event)"
+  ></app-transaction-smart-input>
+</div>
+<app-transactions [transactions]="transactions"></app-transactions>

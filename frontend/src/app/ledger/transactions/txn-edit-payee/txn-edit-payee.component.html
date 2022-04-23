@@ -1,0 +1,40 @@
+<ng-template
+  #payeeListTmpl
+  let-matches="matches"
+  let-query="query"
+  let-typeaheadTemplateMethods
+>
+  <ng-template
+    ngFor
+    let-match
+    let-i="index"
+    [ngForOf]="matches"
+  >
+    <ng-template [ngIf]="!match.isHeader()">
+      <button
+        #liElements
+        class="dropdown-item py-0"
+        (click)="typeaheadTemplateMethods.selectMatch(match, $event)"
+        (mouseenter)="typeaheadTemplateMethods.selectActive(match)"
+        [class.active]="typeaheadTemplateMethods.isActive(match)"
+      >
+        {{match.item.name}}
+      </button>
+    </ng-template>
+  </ng-template>
+</ng-template>
+<input
+  #typehead
+  container="body"
+  class="form-control form-control-sm text-truncate py-0"
+  [readonly]="readonly"
+  [placeholder]="!readonly ? ('MODELS.PAYEE' | translate | lowercase) : ''"
+  [ngModel]="transaction?.payee?.name"
+  [typeahead]="payees"
+  typeaheadOptionField="name"
+  [optionsListTemplate]="payeeListTmpl"
+  [typeaheadScrollable]="true"
+  (typeaheadOnSelect)="onPayeeChange($event.item)"
+  (typeaheadOnPreview)="_preview = $event?.item.category"
+  (blur)="onBlur()"
+>

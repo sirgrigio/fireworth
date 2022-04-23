@@ -6,16 +6,16 @@ import { RoundPipe } from 'ngx-pipes';
 })
 export class AccountingFormatPipe implements PipeTransform {
 
-  transform(value: number | null, precision: number = 0, ...args: unknown[]): string {
+  transform(value: number | null | undefined, precision: number = 0, ...args: unknown[]): string {
     const rounded = this.round(value, precision);
     return rounded && rounded != 0 ?
       rounded > 0 ?
         rounded.toLocaleString('en-US', { minimumFractionDigits: precision })
-        : `(${rounded.toLocaleString('en-US', { minimumFractionDigits: precision })})`
+        : `(${(-rounded).toLocaleString('en-US', { minimumFractionDigits: precision })})`
       : '\u2012';
   }
 
-  private round(value: number | null, precision: number): number | boolean {
+  private round(value: number | null | undefined, precision: number): number | boolean {
     if (value == null) {
       return false;
     }

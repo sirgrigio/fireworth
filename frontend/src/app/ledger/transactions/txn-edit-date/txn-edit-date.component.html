@@ -1,0 +1,11 @@
+<input
+  bsDatepicker
+  #dp="bsDatepicker"
+  type="text"
+  class="form-control form-control-sm text-truncate py-0"
+  [readonly]="readonly"
+  [placeholder]="!readonly ? ('MODELS.DATE' | translate | lowercase) : ''"
+  [bsConfig]="bsConfig"
+  [bsValue]="transaction?.date?.toJSDate()"
+  (bsValueChange)="onDateChange($event)"
+>

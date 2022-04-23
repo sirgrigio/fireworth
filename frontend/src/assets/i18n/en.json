@@ -1,35 +1,69 @@
 {
-    "NAV": {
-        "HOME": "Home",
-        "ABOUT": "About",
-        "LEDGER": "Ledger",
-        "EXPENSES": "Expenses",
-        "STATEMENTS": "Statements",
-        "PROGRESS": "Progress",
-        "FORECASTING": "Forecasting"
+    "COMMONS": {
+        "SAVE": "Save",
+        "CANCEL": "Cancel"
     },
-    "HOME": {
-        "PAGE_FROM": "This is from ",
-        "OPEN_DIALOG": "Open Dialog"
+    "MODELS": {
+        "ACCOUNT": "Account",
+        "AMOUNT": "Amount",
+        "DATE": "Date",
+        "CATEGORY": "Category",
+        "CATEGORY_GROUP": "Category Group",
+        "CURRENCY": "Currency",
+        "EXCHANGE_RATE": "Exchange Rate",
+        "EXCHANGE_RATE_ABBR": "XR",
+        "INFLOW": "Inflow",
+        "MEMO": "Memo",
+        "OUTFLOW": "Outflow",
+        "PAYEE": "Payee",
+        "QUANTITY": "Quantity",
+        "QUANTITY_ABBR": "Qty",
+        "TRANSFER": "Transfer",
+        "TRANSACTION": "Transaction",
+        "UNIT_PRICE": "Unit Price",
+        "UNIT_PRICE_ABBR": "U/P"
     },
-    "ABOUT": {
-        "PAGE_FROM": "This is from ",
-        "TYPE_INTO_BOX_NOTICE": "Type into the box and receive a Greet!"
-    },
-    "STATEMENTS": {
-        "STATEMENT_HEADER": {
-            "ITEM": "Item"
+    "VIEWS": {
+        "NAV": {
+            "HOME": "Home",
+            "ABOUT": "About",
+            "LEDGER": "Ledger",
+            "EXPENSES": "Expenses",
+            "STATEMENTS": "Statements",
+            "PROGRESS": "Progress",
+            "FORECASTING": "Forecasting"
         },
-        "BALANCE_SHEET": "Balance Sheet"
-    },
-    "PERIOD_PICKER": {
-        "THIS_Q": "This quarter",
-        "THIS_Y": "This year",
-        "LAST_4Q": "Last 4 quarters",
-        "LAST_Y": "Last year",
-        "LAST_3Y": "Last 3 years", 
-        "CUSTOM": "Custom",
-        "BY_QUARTER": "Group by quarter",
-        "RANGE_PLACEHOLDER": "Pick a date range"
+        "HOME": {
+            "PAGE_FROM": "This is from ",
+            "OPEN_DIALOG": "Open Dialog"
+        },
+        "ABOUT": {
+            "PAGE_FROM": "This is from ",
+            "TYPE_INTO_BOX_NOTICE": "Type into the box and receive a Greet!"
+        },
+        "LEDGER": {
+            "TRANSACTIONS": {
+                "CLICK_TO_EDIT": "Click to edit",
+                "CREATE_PAYEE": "Create \"{{payee}}\" payee",
+                "SAVE_AND_ADD": "Save and add another",
+                "NO_CATEGORY_REQUIRED": "No category required"
+            }
+        },
+        "STATEMENTS": {
+            "STATEMENT_HEADER": {
+                "ITEM": "Item"
+            },
+            "BALANCE_SHEET": "Balance Sheet"
+        },
+        "PERIOD_PICKER": {
+            "THIS_Q": "This quarter",
+            "THIS_Y": "This year",
+            "LAST_4Q": "Last 4 quarters",
+            "LAST_Y": "Last year",
+            "LAST_3Y": "Last 3 years", 
+            "CUSTOM": "Custom",
+            "BY_QUARTER": "Group by quarter",
+            "RANGE_PLACEHOLDER": "Pick a date range"
+        }
     }
 }

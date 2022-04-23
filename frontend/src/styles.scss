@@ -1,5 +1,7 @@
+@use 'sass:color';
 @import './styles/typography';
 @import './styles/vendor';
+@import './styles/variables';
 
 h1,
 h2,
@@ -22,8 +24,6 @@ h6,
   font-family: 'Montserrat';
 }
 
-/* Importing Bootstrap SCSS file. */
-@import "~bootstrap/scss/bootstrap";
-
-/* Importing Datepicker SCSS file. */
-@import "~ngx-bootstrap/datepicker/bs-datepicker";
+.ngx-datatable-cell-editing {
+  background-color: color.scale($secondary, $lightness: 75%);
+}

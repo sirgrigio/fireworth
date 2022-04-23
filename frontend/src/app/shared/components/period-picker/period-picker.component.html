@@ -8,27 +8,27 @@
     <label
       class="col-2 btn btn-outline-primary mb-0"
       btnRadio="this_q"
-    >{{'PERIOD_PICKER.THIS_Q' | translate}}</label>
+    >{{'VIEWS.PERIOD_PICKER.THIS_Q' | translate}}</label>
     <label
       class="col-2 btn btn-outline-primary mb-0"
       btnRadio="this_y"
-    >{{'PERIOD_PICKER.THIS_Y' | translate}}</label>
+    >{{'VIEWS.PERIOD_PICKER.THIS_Y' | translate}}</label>
     <label
     class="col-2 btn btn-outline-primary mb-0"
     btnRadio="last_y"
-    >{{'PERIOD_PICKER.LAST_Y' | translate}}</label>
+    >{{'VIEWS.PERIOD_PICKER.LAST_Y' | translate}}</label>
     <label
       class="col-2 btn btn-outline-primary mb-0"
       btnRadio="last_4q"
-    >{{'PERIOD_PICKER.LAST_4Q' | translate}}</label>
+    >{{'VIEWS.PERIOD_PICKER.LAST_4Q' | translate}}</label>
     <label
       class="col-2 btn btn-outline-primary mb-0"
       btnRadio="last_3y"
-    >{{'PERIOD_PICKER.LAST_3Y' | translate}}</label>
+    >{{'VIEWS.PERIOD_PICKER.LAST_3Y' | translate}}</label>
     <label
       class="col-2 btn btn-outline-primary mb-0"
       btnRadio="custom"
-    >{{'PERIOD_PICKER.CUSTOM' | translate}}</label>
+    >{{'VIEWS.PERIOD_PICKER.CUSTOM' | translate}}</label>
   </div>
 </div>
 <div
@@ -41,7 +41,7 @@
       class="form-control"
       bsDaterangepicker
       #drp="bsDaterangepicker"
-      [placeholder]="'PERIOD_PICKER.RANGE_PLACEHOLDER' | translate"
+      [placeholder]="'VIEWS.PERIOD_PICKER.RANGE_PLACEHOLDER' | translate"
       [bsConfig]="bsConfig"
       [bsValue]="rangeValues"
       (bsValueChange)="onPickedRangeChange($event)"
@@ -55,6 +55,6 @@
       (ngModelChange)="onGroupByQuarterToggled($event)"
       tabindex="0"
       role="button"
-    >{{'PERIOD_PICKER.BY_QUARTER' | translate}}</label>
+    >{{'VIEWS.PERIOD_PICKER.BY_QUARTER' | translate}}</label>
   </div>
 </div>

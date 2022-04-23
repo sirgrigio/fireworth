@@ -1,0 +1,7 @@
+<input
+  class="form-control form-control-sm text-truncate py-0"
+  [readonly]="readonly"
+  [placeholder]="!readonly ? ('MODELS.MEMO' | translate | lowercase) : ''"
+  [ngModel]="transaction?.memo"
+  (ngModelChange)="onMemoChange($event.item)"
+>

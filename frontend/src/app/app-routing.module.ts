@@ -11,6 +11,10 @@ const routes: Routes = [
     loadChildren: () => import('./about/about.module').then(m => m.AboutModule)
   },
   {
+    path: 'ledger',
+    loadChildren: () => import('./ledger/ledger.module').then(m => m.LedgerModule)
+  },
+  {
     path: 'statements',
     loadChildren: () => import('./statements/statements.module').then(m => m.StatementsModule)
   },

@@ -14,6 +14,8 @@ import { BsDatepickerModule } from 'ngx-bootstrap/datepicker';
 import { ButtonsModule } from 'ngx-bootstrap/buttons';
 import { CollapseModule } from 'ngx-bootstrap/collapse';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { TypeaheadModule } from 'ngx-bootstrap/typeahead';
+import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
 
 const httpLoaderFactory = (http: HttpClient): TranslateHttpLoader => new TranslateHttpLoader(http, './assets/i18n/', '.json');
 
@@ -38,7 +40,9 @@ const httpLoaderFactory = (http: HttpClient): TranslateHttpLoader => new Transla
     BsDatepickerModule.forRoot(),
     ButtonsModule.forRoot(),
     CollapseModule.forRoot(),
-    FontAwesomeModule
+    FontAwesomeModule,
+    TypeaheadModule.forRoot(),
+    BsDropdownModule.forRoot()
   ],
   providers: [],
   bootstrap: [AppComponent]

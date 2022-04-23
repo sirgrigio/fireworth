@@ -1,0 +1,51 @@
+<ng-template
+  #categoryListTmpl
+  let-matches="matches"
+  let-query="query"
+  let-typeaheadTemplateMethods
+>
+  <ng-template
+    ngFor
+    let-match
+    let-i="index"
+    [ngForOf]="matches"
+  >
+    <p
+      *ngIf="match.isHeader()"
+      class="dropdown-header py-0 px-2"
+    >{{match}}</p>
+    <ng-template [ngIf]="!match.isHeader()">
+      <button
+        #liElements
+        class="dropdown-item py-0"
+        (click)="typeaheadTemplateMethods.selectMatch(match, $event)"
+        (mouseenter)="typeaheadTemplateMethods.selectActive(match)"
+        [class.active]="typeaheadTemplateMethods.isActive(match)"
+      >
+        {{match.item.category.name}}
+      </button>
+    </ng-template>
+  </ng-template>
+</ng-template>
+<input
+  #typehead
+  container="body"
+  class="form-control form-control-sm text-truncate py-0"
+  [readonly]="readonly || !required"
+  [placeholder]="
+    !required
+      ? ('VIEWS.LEDGER.TRANSACTIONS.NO_CATEGORY_REQUIRED' | translate)
+      : !readonly
+        ? ('MODELS.CATEGORY' | translate | lowercase)
+        : ''
+  "
+  [ngModel]="required? transaction?.category : null"
+  typeaheadOptionField="nameId"
+  typeaheadGroupField="group"
+  [optionsListTemplate]="categoryListTmpl"
+  [typeahead]="_wrappedCategories"
+  [typeaheadScrollable]="true"
+  (typeaheadOnSelect)="onCategoryChange($event.item.category)"
+  (typeaheadOnPreview)="_preview = $event?.item.category"
+  (blur)="onBlur()"
+>

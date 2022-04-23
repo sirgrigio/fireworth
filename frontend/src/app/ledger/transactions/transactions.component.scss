@@ -1,0 +1,6 @@
+@use 'sass:color';
+@import 'variables';
+
+.editing {
+  background-color: color.scale($secondary, $lightness: 75%);
+}
