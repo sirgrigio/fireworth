@@ -1,4 +1,8 @@
-<div *ngIf="section">
+<div
+  *ngIf="section"
+  class="rounded"
+  [style.border-bottom]="'0.2rem solid '+accentTextColor"
+>
   <div
     id="collapsible"
     [collapse]="isCollapsed"
@@ -36,11 +40,7 @@
       ></app-cell>
     </div>
   </div>
-  <div
-    class="d-flex"
-    [ngClass]="_recursive ? '' : 'rounded-bottom'"
-    [style.border-bottom]="'0.2rem solid '+accentTextColor"
-  >
+  <div class="d-flex">
     <app-cell
       class="col-1 bold"
       [ngClass]="_recursive? '' : 'cell-bg-gray'"

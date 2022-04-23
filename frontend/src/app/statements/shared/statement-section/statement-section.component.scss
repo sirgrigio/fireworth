@@ -1,9 +1,5 @@
 @import 'variables';
 
-div.d-flex {
-  border-top: 0.1rem solid $gray-100;
-}
-
 #collapsible[aria-hidden=true]~div.d-flex {
   border-top: 0.2rem solid $gray-200;
 }
@@ -14,4 +10,9 @@ app-cell:first-of-type, app-cell+app-cell {
 
 app-cell:last-of-type {
   border-right: 0.1rem solid $gray-100;
+}
+
+app-cell {
+  border-top: 0.1rem solid $gray-100;
+  min-width: 5rem;
 }

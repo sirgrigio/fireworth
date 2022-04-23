@@ -2,18 +2,22 @@
 @import 'variables';
 
 div.d-flex {
+  color: $primary;
+  font-size: $font-size-base * 0.8;
+  font-weight: bold;
+
+  div {
     background-color: $light;
-    border: 0.1rem solid $primary;
-    color: $primary;
-    font-size: $font-size-base * 0.8;
-    font-weight: bold;
-}
-
-div.col {
     border-left: 0.1rem solid $primary;
-}
+    border-top: 0.1rem solid $primary;
+    border-bottom: 0.1rem solid $primary;
+    min-width: 100%;
+    min-width: 5rem;
 
-div.emph {
-    background-color: $primary;
-    color: $light;
+    &.emph {
+      background-color: $primary;
+      border-left: 0.1rem solid $primary;
+      color: $light;
+    }
+  }
 }

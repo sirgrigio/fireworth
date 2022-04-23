@@ -1,6 +1,6 @@
-<div class="d-flex rounded align-items-strecth text-center text-uppercase">
-    <div class="col-1 px-2 text-start">{{'STATEMENTS.STATEMENT_HEADER.ITEM' | translate}}</div>
+<div class="d-flex align-items-strecth text-center text-uppercase">
+    <div class="col-1 px-2 text-start rounded-start">{{'STATEMENTS.STATEMENT_HEADER.ITEM' | translate}}</div>
     <div class="col px-2 emph">{{period?.start | dateTimeToFormat:fmtStart()}}</div>
     <div class="col px-2" *ngFor="let period of period?.subperiods">{{period | dateTimeToFormat:fmtSubperiod()}}</div>
-    <div class="col px-2 emph">{{period?.end | dateTimeToFormat:fmtEnd()}}</div>
+    <div class="col px-2 emph rounded-end">{{period?.end | dateTimeToFormat:fmtEnd()}}</div>
 </div>
