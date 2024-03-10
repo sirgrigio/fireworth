@@ -180,7 +180,11 @@ class TransferBeanifier(YNABBeanifier):
             tags = self.memo_parser.extract_tags()
             postings = self._make_postings()
             is_payment = any([p.account.startswith('Liabilities') for p in postings])
-            is_payback = any([p.account.startswith('Assets:Lending') and p.units.number < 0 for p in postings])
+            is_payback = all(
+                    [p.account.startswith('Assets') for p in postings]
+                ) and any(
+                    [p.account.startswith('Assets:Lending') and p.units.number < 0 for p in postings]
+                )
             if not payee:
                 if is_payment:
                     payee = 'Payment'
