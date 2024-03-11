@@ -31,7 +31,7 @@ class YNABtoPostingConverter(ABC):
 
     @abstractmethod
     def convert(self) -> List[BPosting]:
-        ...
+        raise NotImplementedError()
 
     @staticmethod
     def _make_posting(account: str, ynab_amount: int, currency: str='EUR', precision=2) -> List[BPosting]:
@@ -103,7 +103,7 @@ class YNABBeanifier(ABC):
 
     @abstractmethod
     def beanify(self) -> NamedTuple:
-        ...
+        raise NotImplementedError()
 
     @staticmethod
     def merge(postings: List[BPosting]) -> List[BPosting]:

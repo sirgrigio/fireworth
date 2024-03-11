@@ -12,19 +12,19 @@ class MemoParser(ABC):
 
     @abstractmethod
     def extract_payee(self) -> str:
-        ...
+        raise NotImplementedError()
 
     @abstractmethod
     def extract_narration(self) -> str:
-        ...
+        raise NotImplementedError()
 
     @abstractmethod
     def extract_tags(self) -> Set[str]:
-        ...
+        raise NotImplementedError()
 
     @abstractmethod
     def extract_recipients(self) -> Set[str]:
-        ...
+        raise NotImplementedError()
 
 
 class EmptyMemoParser(MemoParser):
@@ -46,7 +46,7 @@ class GenericMemoParser(EmptyMemoParser):
 
     def __init__(self, memo):
         super().__init__(memo)
-        self._pattern_payee_narration = r'([@#][\w\-,]+)?((?P<payee>[\w\s]+):)?(?P<narration>[\w\s&\-\(\)\+\']+)'
+        self._pattern_payee_narration = r'([@#][\w\-,]+)?((?P<payee>[\w\s]+):)?(?P<narration>[\w\s&\-\(\)\+\']*)'
         self._pattern_recipients = r'@([\w,]+)'
         self._pattern_tags = r'#([\w\-]+)'
 
