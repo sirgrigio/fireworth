@@ -13,6 +13,14 @@ class BaseClient(ABC):
     def get(self, endpoint: str):
         raise NotImplementedError()
 
+    @abstractmethod
+    def post(self, endpoint: str, payload: dict):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def put(self, endpoint: str, payload: dict):
+        raise NotImplementedError()
+
     @property
     def headers(self):
         return {
