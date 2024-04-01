@@ -118,25 +118,47 @@ class Transaction:
 
 
 @dataclass
-class Data:
+class TransactionListData:
     transactions: List[Transaction]
 
     @staticmethod
-    def from_dict(obj: Any) -> "Data":
+    def from_dict(obj: Any) -> "TransactionListData":
         assert isinstance(obj, dict)
         transactions = parsers.from_list(Transaction.from_dict, obj.get("transactions"))
-        return Data(transactions)
+        return TransactionListData(transactions)
 
 
 @dataclass
-class TransactionsResponse:
-    data: Data
+class TransactionData:
+    transaction: Transaction
 
     @staticmethod
-    def from_dict(obj: Any) -> "TransactionsResponse":
+    def from_dict(obj: Any) -> "TransactionData":
         assert isinstance(obj, dict)
-        data = Data.from_dict(obj.get("data"))
-        return TransactionsResponse(data)
+        transaction = Transaction.from_dict(obj.get("transaction"))
+        return TransactionData(transaction)
+
+
+@dataclass
+class TransactionListResponse:
+    data: TransactionListData
+
+    @staticmethod
+    def from_dict(obj: Any) -> "TransactionListResponse":
+        assert isinstance(obj, dict)
+        data = TransactionListData.from_dict(obj.get("data"))
+        return TransactionListResponse(data)
+
+
+@dataclass
+class TransactionResponse:
+    data: TransactionData
+
+    @staticmethod
+    def from_dict(obj: Any) -> "TransactionResponse":
+        assert isinstance(obj, dict)
+        data = TransactionData.from_dict(obj.get("data"))
+        return TransactionResponse(data)
 
 
 @dataclass

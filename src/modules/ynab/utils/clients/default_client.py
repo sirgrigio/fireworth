@@ -12,15 +12,29 @@ class DefaultClient(BaseClient):
         self.logger.debug(f'GET {url}')
         response = requests.get(url, headers=self.headers)
         self.logger.debug(response)
-        data = response.json()
-        return data
+        response.raise_for_status()
+        return response.json()
 
     def post(self, endpoint: str, payload: dict):
-        url = self.config.full_url + endpoint
+        url = self.base_url + endpoint
+        self.logger.debug(f'POST {url}')
         response = requests.post(url, json=payload, headers=self.headers)
+        self.logger.debug(response)
+        response.raise_for_status()
         return response.json()
 
     def put(self, endpoint: str, payload: dict):
-        url = self.config.full_url + endpoint
+        url = self.base_url + endpoint
+        self.logger.debug(f'PUT {url}')
         response = requests.put(url, json=payload, headers=self.headers)
+        self.logger.debug(response)
+        response.raise_for_status()
+        return response.json()
+
+    def delete(self, endpoint: str):
+        url = self.base_url + endpoint
+        self.logger.debug(f'DELETE {url}')
+        response = requests.delete(url, headers=self.headers)
+        self.logger.debug(response)
+        response.raise_for_status()
         return response.json()

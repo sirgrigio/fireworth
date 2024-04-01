@@ -21,6 +21,10 @@ class BaseClient(ABC):
     def put(self, endpoint: str, payload: dict):
         raise NotImplementedError()
 
+    @abstractmethod
+    def delete(self, endpoint: str):
+        raise NotImplementedError()
+
     @property
     def headers(self):
         return {
