@@ -71,7 +71,9 @@ class InflowConverter(YNABtoPostingConverter):
 
     def convert(self) -> List[BPosting]:
         if self.txn.category_name == 'Inflow: Ready to Assign' and not self.txn.transfer_account_id:
-            a_from, a_to = map_inflow(self.txn.payee_name)(self.txn.account_name)
+            a_from, a_to = map_inflow(self.txn.payee_name)(self.txn)
+            a_from = map_account(a_from)
+            a_to = map_account(a_to)
             return [
                 self._make_posting(a_from, -self.txn.amount),
                 self._make_posting(a_to, self.txn.amount)
@@ -104,6 +106,13 @@ class YNABBeanifier(ABC):
     @abstractmethod
     def beanify(self) -> NamedTuple:
         raise NotImplementedError()
+
+    @staticmethod
+    def is_investment(transaction: YTransaction):
+        return (transaction.account_name == 'Investments'
+            or transaction.payee_name == 'Transfer : Investments'
+            or transaction.payee_name in ('Coupon', 'Dividends')
+            or (transaction.memo and transaction.memo.startswith('ACCRUAL')))
 
     @staticmethod
     def merge(postings: List[BPosting]) -> List[BPosting]:
@@ -158,10 +167,13 @@ class YNABBeanifier(ABC):
 class InflowBeanifier(YNABBeanifier):
 
     def beanify(self) -> NamedTuple:
-        if self.txn.payee_name == 'Inflow: Ready to Assign':
+        if ((self.txn.payee_name == 'Paycheck'
+             or self.txn.category_name == 'Inflow: Ready to Assign')
+            and not self.is_investment(self.txn)):
             return self._make_transaction(
                 self.txn.date,
                 self.txn.payee_name.strip(),
+                narration=self.txn.memo,
                 postings=self._make_postings()
             )
         return None
@@ -174,8 +186,7 @@ class TransferBeanifier(YNABBeanifier):
 
     def beanify(self) -> NamedTuple:
         if (self.txn.transfer_transaction_id is not None
-            and self.txn.account_name != 'Investments'
-            and self.txn.payee_name != 'Transfer : Investments'):
+            and not self.is_investment(self.txn)):
             payee = self.memo_parser.extract_payee()
             tags = self.memo_parser.extract_tags()
             postings = self._make_postings()
