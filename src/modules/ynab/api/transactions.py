@@ -21,6 +21,12 @@ class TransactionsApi:
         response = self.client.post(f"/budgets/{budget_id}/transactions", payload)
         return CreateTransactionResponse.from_dict(response)
 
+    def update_transaction(self, budget_id: str, transaction: Transaction) -> TransactionResponse:
+        payload = {"transaction": dataclasses.asdict(transaction)}
+        print(payload)
+        response = self.client.put(f"/budgets/{budget_id}/transactions/{transaction.id}", payload)
+        return TransactionResponse.from_dict(response)
+
     def delete_transaction(self, budget_id: str, transaction_id: str) -> TransactionResponse:
         response = self.client.delete(f"/budgets/{budget_id}/transactions/{transaction_id}")
         return TransactionResponse.from_dict(response)
