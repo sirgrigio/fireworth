@@ -46,12 +46,42 @@ class YNABtoPostingConverter(ABC):
             return -1 if p1.account <= p2.account else 1
 
 
+class StartingBalanceConverter(YNABtoPostingConverter):
+
+    def convert(self) -> List[BPosting]:
+        if (self.txn.payee_name == 'Starting Balance'):
+            a_from = 'Equity:OpeningBalance'
+            a_to = map_account(self.txn.account_name)
+            return [
+                self._make_posting(a_from, -self.txn.amount),
+                self._make_posting(a_to, self.txn.amount)
+            ]
+        return None
+
+
+class InflowConverter(YNABtoPostingConverter):
+
+    def convert(self) -> List[BPosting]:
+        if (self.txn.category_name == 'Inflow: Ready to Assign'
+            and self.txn.payee_name != 'Starting Balance'
+            and not self.txn.transfer_account_id
+            and not YNABBeanifier.is_investment(self.txn)):
+            a_from, a_to = map_inflow(self.txn.payee_name)(self.txn)
+            a_from = map_account(a_from)
+            a_to = map_account(a_to)
+            return [
+                self._make_posting(a_from, -self.txn.amount),
+                self._make_posting(a_to, self.txn.amount)
+            ]
+        return None
+
+
 class TransferConverter(YNABtoPostingConverter):
 
     def convert(self) -> List[BPosting]:
         if (self.txn.transfer_transaction_id is not None
-            and self.txn.account_name != 'Investments'
-            and self.txn.payee_name != 'Transfer : Investments'):
+            and self.txn.payee_name != 'Starting Balance'
+            and not YNABBeanifier.is_investment(self.txn)):
             a_from = [map_account(self.txn.account_name)]
             a_to = [map_account(self.txn.payee_name.split(':')[1].strip())]
             recipients = self.memo_parser.extract_recipients()
@@ -67,24 +97,13 @@ class TransferConverter(YNABtoPostingConverter):
         return None
 
 
-class InflowConverter(YNABtoPostingConverter):
-
-    def convert(self) -> List[BPosting]:
-        if self.txn.category_name == 'Inflow: Ready to Assign' and not self.txn.transfer_account_id:
-            a_from, a_to = map_inflow(self.txn.payee_name)(self.txn)
-            a_from = map_account(a_from)
-            a_to = map_account(a_to)
-            return [
-                self._make_posting(a_from, -self.txn.amount),
-                self._make_posting(a_to, self.txn.amount)
-            ]
-        return None
-
 class ExpenseConverter(YNABtoPostingConverter):
 
     def convert(self) -> List[BPosting]:
         if (self.txn.category_name != 'Inflow: Ready to Assign'
-            and self.txn.transfer_account_id is None):
+            and self.txn.payee_name != 'Starting Balance'
+            and not self.txn.transfer_account_id
+            and not YNABBeanifier.is_investment(self.txn)):
             return [
                 self._make_posting(map_account(self.txn.account_name), self.txn.amount),
                 self._make_posting(map_category(self.txn.category_name), -self.txn.amount)
@@ -97,8 +116,9 @@ class YNABBeanifier(ABC):
     def __init__(self, transaction: YTransaction):
         self.txn = transaction
         self.converters: List[YNABtoPostingConverter] = [
-            TransferConverter,
+            StartingBalanceConverter,
             InflowConverter,
+            TransferConverter,
             ExpenseConverter,
         ]
         self.memo_parser = memo_parser(self.txn.memo)
@@ -148,6 +168,7 @@ class YNABBeanifier(ABC):
                 new_postings = c(t).convert()
                 if new_postings:
                     postings += new_postings
+                    break
         return self.merge(postings)
 
     @staticmethod
@@ -164,12 +185,39 @@ class YNABBeanifier(ABC):
         return BTransaction(meta, date, flag, payee, narration, tags, links, postings)
 
 
+class StartingBalanceBeanifier(YNABBeanifier):
+
+    def beanify(self) -> NamedTuple:
+        if self.txn.payee_name == 'Starting Balance':
+            return self._make_transaction(
+                self.txn.date,
+                self.txn.payee_name.strip(),
+                narration=self.txn.memo,
+                postings=self._make_postings()
+            )
+        return None
+
+
 class InflowBeanifier(YNABBeanifier):
 
     def beanify(self) -> NamedTuple:
         if ((self.txn.payee_name == 'Paycheck'
              or self.txn.category_name == 'Inflow: Ready to Assign')
+            and self.txn.transfer_account_id is None
             and not self.is_investment(self.txn)):
+            return self._make_transaction(
+                self.txn.date,
+                self.txn.payee_name.strip(),
+                narration=self.txn.memo,
+                postings=self._make_postings()
+            )
+        return None
+
+
+class InvestmentBeanifier(YNABBeanifier):
+
+    def beanify(self) -> NamedTuple:
+        if self.is_investment(self.txn):
             return self._make_transaction(
                 self.txn.date,
                 self.txn.payee_name.strip(),
@@ -181,16 +229,14 @@ class InflowBeanifier(YNABBeanifier):
 
 class TransferBeanifier(YNABBeanifier):
 
-    def __init__(self, transaction: YTransaction):
-        super().__init__(transaction)
-
     def beanify(self) -> NamedTuple:
         if (self.txn.transfer_transaction_id is not None
             and not self.is_investment(self.txn)):
             payee = self.memo_parser.extract_payee()
             tags = self.memo_parser.extract_tags()
             postings = self._make_postings()
-            is_payment = any([p.account.startswith('Liabilities') for p in postings])
+            is_payment = any([p.account.startswith('Liabilities') and p.units.number > 0 for p in postings])
+            is_borrowing = any([p.account.startswith('Liabilities') and p.units.number < 0 for p in postings])
             is_payback = all(
                     [p.account.startswith('Assets') for p in postings]
                 ) and any(
@@ -198,7 +244,9 @@ class TransferBeanifier(YNABBeanifier):
                 )
             if not payee:
                 if is_payment:
-                    payee = 'Payment'
+                    payee = 'Debt Payment'
+                elif is_borrowing:
+                    payee = 'Borrowing'
                 elif is_payback:
                     payee = 'Payback'
                 else:
@@ -234,13 +282,24 @@ class TravelBeanifier(YNABBeanifier):
 class ExpenseBeanifier(YNABBeanifier):
 
     def beanify(self) -> NamedTuple:
+        if (self.txn.category_name is not None
+            and self.txn.category_name != 'Uncategorized'):
+            return self._make_transaction(
+                self.txn.date,
+                payee=self.txn.payee_name,
+                narration=self.txn.memo,
+                tags=self.memo_parser.extract_tags(),
+                postings=self._make_postings()
+            )
         return None
 
 
 DEFAULT_BEANIFIERS = [
+    StartingBalanceBeanifier,
     InflowBeanifier,
     TransferBeanifier,
-    TravelBeanifier
+    TravelBeanifier,
+    ExpenseBeanifier
 ]
 
 
@@ -257,17 +316,26 @@ def beanify(
     getcontext().prec = 60
     beancount_transactions = []
     handled_transfers = []
+    handled_transactions = []
     for t in transactions:
         if t.id not in handled_transfers:
-            if t.transfer_transaction_id:
-                handled_transfers.append(t.transfer_transaction_id)
+            handled = False
             try:
                 for b in beanifiers:
                     btxn = b(t).beanify()
                     if btxn:
+                        handled = True
                         beancount_transactions.append(btxn)
                         break
             except Exception as ex:
                 print_ytxn(t)
                 raise ex
+            if handled:
+                handled_transactions.append(t.id)
+                for subt in (t.subtransactions if t.subtransactions + [t] else [t]):
+                    if subt.transfer_transaction_id:
+                        handled_transfers.append(subt.transfer_transaction_id)
+    for t in transactions:
+        if t.id not in handled_transactions and t.id not in handled_transfers:
+            print_ytxn(t)
     return beancount_transactions
