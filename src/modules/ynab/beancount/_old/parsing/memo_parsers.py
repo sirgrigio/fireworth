@@ -1,6 +1,8 @@
-from abc import ABC, abstractmethod
 import re
+from abc import ABC, abstractmethod
 from typing import Set
+
+from beancount.core.data import Meta
 
 from .utils import travel_name_to_tag
 
@@ -49,6 +51,7 @@ class GenericMemoParser(EmptyMemoParser):
         self._pattern_payee_narration = r'([@#][\w\-,]+)?((?P<payee>[\w\s]+):)?(?P<narration>[\w\s&\-\(\)\+\']*)'
         self._pattern_recipients = r'@([\w,]+)'
         self._pattern_tags = r'#([\w\-]+)'
+        self._pattern_meta = r'\<(?P<key>[\w\-_]+),(?P<value>[\w\-_]+)\>'
 
     def extract_payee(self) -> str:
         match = re.search(self._pattern_payee_narration, self._memo)
@@ -65,13 +68,15 @@ class GenericMemoParser(EmptyMemoParser):
     def extract_tags(self) -> Set[str]:
         return set(re.findall(self._pattern_tags, self._memo))
 
+    def extract_meta(self) -> Meta:
+        return {t(0): t(1) for t in re.findall(self._pattern_meta, self._memo)}
+
     def extract_recipients(self) -> Set[str]:
         groups = re.findall(self._pattern_recipients, self._memo)
         recipients = []
         for g in groups:
             recipients += g.split(',')
         return set(recipients)
-
 
 
 class TravelMemoParser(GenericMemoParser):
@@ -95,7 +100,6 @@ class TravelMemoParser(GenericMemoParser):
         tags.add(travel_name_to_tag(match.group(0)))
         tags.add('trip')
         return tags
-
 
 
 class InvestmentMemoParser(GenericMemoParser):

@@ -1,0 +1,29 @@
+# FIELDS
+# id: str
+# date: str
+# amount: int
+# memo: Optional[str]
+# cleared: str
+# approved: bool
+# flag_color: Optional[str]
+# account_id: str
+# payee_id: Optional[str]
+# category_id: Optional[str]
+# transfer_account_id: Optional[str]
+# transfer_transaction_id: Optional[str
+# matched_transaction_id: Optional[str]
+# import_id: Optional[str]
+# deleted: bool
+# account_name: str
+# payee_name: Optional[str]
+# category_name: Optional[str]
+
+preprocessors:
+- if:
+    <field>: <regex>
+  then:
+    <field>: <value>
+- replace:
+  field: <field>
+  pattern: <regex>
+  value: <value>

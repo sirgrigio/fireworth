@@ -1,0 +1,12 @@
+settings.yml
+
+accounts.json
+expenses.json
+inflows.json
+
+preprocessors.yml
+extractors_meta.yml
+extractors_recipients.yml
+extractors_tags.yml
+
+mergers.yml

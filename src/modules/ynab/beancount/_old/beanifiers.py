@@ -15,100 +15,11 @@ from src.modules.ynab.api.models.transactions import \
     Subtransaction as YSubtransaction
 from src.modules.ynab.api.models.transactions import \
     Transaction as YTransaction
+from src.modules.ynab.beancount.mappers import AccountMapper, CategoryMapper
 
-from .mappings.accounts import map_account
-from .mappings.categories import map_category
-from .mappings.payees import map_inflow
+from .mapping.payees import map_inflow
 from .parsing.utils import travel_name_to_tag
 from .parsing.memo_parsers import memo_parser
-
-
-class YNABtoPostingConverter(ABC):
-
-    def __init__(self, transaction: YTransaction | YSubtransaction) -> None:
-        self.txn = transaction
-        self.memo_parser = memo_parser(self.txn.memo)
-
-    @abstractmethod
-    def convert(self) -> List[BPosting]:
-        raise NotImplementedError()
-
-    @staticmethod
-    def _make_posting(account: str, ynab_amount: int, currency: str='EUR', precision=2) -> List[BPosting]:
-        amount = Decimal(ynab_amount/1000).quantize(Decimal(10)**-precision)
-        return BPosting(account, Amount(amount, currency), None, None, None, None)
-
-    @staticmethod
-    def cmp_postings(p1: BPosting, p2: BPosting) -> int:
-        if p1.units.number < 0 or p2.units.number < 0:
-            return p1.units.number - p2.units.number
-        else:
-            return -1 if p1.account <= p2.account else 1
-
-
-class StartingBalanceConverter(YNABtoPostingConverter):
-
-    def convert(self) -> List[BPosting]:
-        if (self.txn.payee_name == 'Starting Balance'):
-            a_from = 'Equity:OpeningBalance'
-            a_to = map_account(self.txn.account_name)
-            return [
-                self._make_posting(a_from, -self.txn.amount),
-                self._make_posting(a_to, self.txn.amount)
-            ]
-        return None
-
-
-class InflowConverter(YNABtoPostingConverter):
-
-    def convert(self) -> List[BPosting]:
-        if (self.txn.category_name == 'Inflow: Ready to Assign'
-            and self.txn.payee_name != 'Starting Balance'
-            and not self.txn.transfer_account_id
-            and not YNABBeanifier.is_investment(self.txn)):
-            a_from, a_to = map_inflow(self.txn.payee_name)(self.txn)
-            a_from = map_account(a_from)
-            a_to = map_account(a_to)
-            return [
-                self._make_posting(a_from, -self.txn.amount),
-                self._make_posting(a_to, self.txn.amount)
-            ]
-        return None
-
-
-class TransferConverter(YNABtoPostingConverter):
-
-    def convert(self) -> List[BPosting]:
-        if (self.txn.transfer_transaction_id is not None
-            and self.txn.payee_name != 'Starting Balance'
-            and not YNABBeanifier.is_investment(self.txn)):
-            a_from = [map_account(self.txn.account_name)]
-            a_to = [map_account(self.txn.payee_name.split(':')[1].strip())]
-            recipients = self.memo_parser.extract_recipients()
-            if recipients:
-                if self.txn.account_name == 'Lending':
-                    a_from = [f'{a_from[0]}:{r}' for r in recipients]
-                if self.txn.payee_name == 'Transfer : Lending':
-                    a_to = [f'{a_to[0]}:{r}' for r in recipients]
-            return [
-                *[self._make_posting(a, self.txn.amount/len(a_from)) for a in a_from],
-                *[self._make_posting(a, -self.txn.amount/len(a_to)) for a in a_to]
-            ]
-        return None
-
-
-class ExpenseConverter(YNABtoPostingConverter):
-
-    def convert(self) -> List[BPosting]:
-        if (self.txn.category_name != 'Inflow: Ready to Assign'
-            and self.txn.payee_name != 'Starting Balance'
-            and not self.txn.transfer_account_id
-            and not YNABBeanifier.is_investment(self.txn)):
-            return [
-                self._make_posting(map_account(self.txn.account_name), self.txn.amount),
-                self._make_posting(map_category(self.txn.category_name), -self.txn.amount)
-            ]
-        return None
 
 
 class YNABBeanifier(ABC):
@@ -287,7 +198,7 @@ class ExpenseBeanifier(YNABBeanifier):
             return self._make_transaction(
                 self.txn.date,
                 payee=self.txn.payee_name,
-                narration=self.txn.memo,
+                narration=self.memo_parser.extract_narration(),
                 tags=self.memo_parser.extract_tags(),
                 postings=self._make_postings()
             )
@@ -301,12 +212,6 @@ DEFAULT_BEANIFIERS = [
     TravelBeanifier,
     ExpenseBeanifier
 ]
-
-
-def print_ytxn(t: YTransaction):
-    print(t.date, t.account_name, t.payee_name, t.memo, t.category_name, t.amount, sep='|')
-    for s in t.subtransactions:
-        print("  ", s.payee_name, s.memo, s.category_name, s.amount, sep='|')
 
 
 def beanify(
@@ -328,7 +233,7 @@ def beanify(
                         beancount_transactions.append(btxn)
                         break
             except Exception as ex:
-                print_ytxn(t)
+                print(t.describe())
                 raise ex
             if handled:
                 handled_transactions.append(t.id)
@@ -337,5 +242,5 @@ def beanify(
                         handled_transfers.append(subt.transfer_transaction_id)
     for t in transactions:
         if t.id not in handled_transactions and t.id not in handled_transfers:
-            print_ytxn(t)
+            print(t.describe())
     return beancount_transactions

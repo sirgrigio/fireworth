@@ -17,7 +17,7 @@ class Subtransaction:
     payee_name: Optional[str]
     category_name: Optional[str]
     deleted: bool
-    account_name: str = None
+    account_name: Optional[str]
 
     @staticmethod
     def from_dict(obj: Any) -> "Subtransaction":
@@ -33,6 +33,7 @@ class Subtransaction:
         payee_name = parsers.from_str(obj.get("payee_name"), True)
         category_name = parsers.from_str(obj.get("category_name"), True)
         deleted = parsers.from_bool(obj.get("deleted"))
+        account_name = parsers.from_str(obj.get("account_name"), True)
         return Subtransaction(
             sub_transaction_id,
             transaction_id,
@@ -45,7 +46,17 @@ class Subtransaction:
             payee_name,
             category_name,
             deleted,
+            account_name
         )
+
+    def describe(self, **kwargs) -> str:
+        return '|'.join([
+            str(self.account_name),
+            str(self.payee_name),
+            str(self.category_name),
+            str(self.memo),
+            str(self.amount)
+        ])
 
 
 @dataclass
@@ -91,7 +102,12 @@ class Transaction:
         account_name = parsers.from_str(obj.get("account_name"))
         payee_name = parsers.from_str(obj.get("payee_name"), True)
         category_name = parsers.from_str(obj.get("category_name"), True)
-        subtransactions = parsers.from_list(Subtransaction.from_dict, obj.get("subtransactions"))
+        subtransactions = parsers.from_list(
+            lambda o: Subtransaction.from_dict(
+                o.__dict__ if isinstance(o, Subtransaction) else o
+            ),
+            obj.get("subtransactions")
+        )
         for s in subtransactions:
             s.account_name = account_name
         return Transaction(
@@ -115,6 +131,19 @@ class Transaction:
             category_name,
             subtransactions,
         )
+
+    def describe(self, sep: str='\n  ') -> str:
+        repr = '|'.join([
+            str(self.date),
+            str(self.account_name),
+            str(self.payee_name),
+            str(self.category_name),
+            str(self.memo),
+            str(self.amount)
+        ])
+        for s in self.subtransactions:
+            repr += f'{sep}{s.describe()}'
+        return repr
 
 
 @dataclass
