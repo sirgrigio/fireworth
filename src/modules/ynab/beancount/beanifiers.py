@@ -51,10 +51,11 @@ class YNABBeanifier(ABC):
         assert len(src_accs) > 0
         assert len(dst_accs) > 0
         postings = []
-        builder = BeanPostingBuilder().set_meta(meta)
+        builder = BeanPostingBuilder()
         builder.set_units(-amount / len(src_accs))
         for acc in src_accs:
             postings.append(builder.set_account(acc).build(clear=False))
+        builder.set_meta(meta)
         builder.set_units(amount / len(dst_accs))
         for acc in dst_accs:
             postings.append(builder.set_account(acc).build(clear=False))
