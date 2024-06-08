@@ -17,7 +17,7 @@ class _Posting:
         self._cost: Cost | CostSpec = None
         self._price: Amount = None
         self._flag: Flag = None
-        self._meta: Meta = None
+        self._meta: Meta = {}
 
     def to_posting(self) -> Posting:
         return Posting(
@@ -62,7 +62,7 @@ class BeanPostingBuilder:
         return self
 
     def set_meta(self, meta: Meta) -> "BeanPostingBuilder":
-        self.__pst._meta = meta
+        self.__pst._meta = meta if meta else {}
         return self
 
     def build(self, clear=True) -> NamedTuple:
