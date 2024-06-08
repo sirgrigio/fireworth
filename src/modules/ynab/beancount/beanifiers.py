@@ -110,7 +110,7 @@ class InflowBeanifier(YNABBeanifier):
         if not src_acc:
             log.warning(f'cannot properly map inflow: {self.txn.describe(sep=" >> ")}')
             log.warning('trying to map it using expenses assuming it is a refund')
-            src_acc = self.settings.mapper_expenses.map(self.txn.payee_name)
+            src_acc = self.settings.mapper_expenses.map((self.txn.category_name, self.txn.payee_name), default_key='.')
         return self._postify(
             self.txn.amount,
             src_accs=[src_acc],
