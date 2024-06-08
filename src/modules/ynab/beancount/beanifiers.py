@@ -105,9 +105,14 @@ class ExpenseBeanifier(YNABBeanifier):
 class InflowBeanifier(YNABBeanifier):
 
     def postify(self, include_meta=True) -> List[Posting]:
+        src_acc = self.settings.mapper_inflows.map(self.txn.payee_name)
+        if not src_acc:
+            log.warning(f'cannot properly map inflow: {self.txn.describe(sep=" >> ")}')
+            log.warning('trying to map it using expenses assuming it is a refund')
+            src_acc = self.settings.mapper_expenses.map(self.txn.payee_name)
         return self._postify(
             self.txn.amount,
-            src_accs=[self.settings.mapper_inflows.map(self.txn.payee_name)],
+            src_accs=[src_acc],
             dst_accs=[self.settings.mapper_accounts.map(self.txn.account_name)],
             meta=self._get_meta() if include_meta else None
         )
@@ -158,20 +163,29 @@ class TransferBeanifier(YNABBeanifier):
             builder.set_payee(self.settings.xfer_default_payment_payee)
         elif any([p.account.startswith('Liabilities') and p.units.number < 0 for p in postings]):
             builder.set_payee(self.settings.xfer_default_borrowing_payee)
-        elif (
-            all([p.account.startswith('Assets') for p in postings])
-            and any([
+        elif all([p.account.startswith('Assets') for p in postings]):
+            if any([
+                any([
+                    p.account.startswith(acc)
+                    for acc in self.settings.xfer_lending_accounts
+                ])
+                and p.units.number > 0
+                for p in postings
+            ]):
+                builder.set_payee(self.settings.xfer_default_lending_payee)
+            elif any([
                 any([
                     p.account.startswith(acc)
                     for acc in self.settings.xfer_lending_accounts
                 ])
                 and p.units.number < 0
                 for p in postings
-            ])
-        ):
-            builder.set_payee(self.settings.xfer_default_payback_payee)
+            ]):
+                builder.set_payee(self.settings.xfer_default_payback_payee)
+            else:
+                builder.set_payee(self.settings.xfer_default_payee)
         else:
-            builder.set_payee(self.settings.xfer_default_payee)
+            builder.set_payee(self.txn.payee_name)
         # set memo after recipients have been extracted
         builder.set_narration(self.txn.memo)
         return builder.build()
@@ -236,6 +250,7 @@ def beanify(settings: Settings, transactions: List[YNABTransaction]) -> List[Nam
                     if subt.transfer_transaction_id:
                         log.debug(f'transaction is a transfer - marking other side as handled')
                         handled_transfers.append(subt.transfer_transaction_id)
+                log.debug(f'transaction handled successfully')
             except Exception as ex:
                 log.error(f'error handling transaction {t.describe(sep=" >> ")}')
                 raise ex

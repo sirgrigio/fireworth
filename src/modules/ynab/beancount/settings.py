@@ -23,6 +23,7 @@ class Settings:
         self.xfer_ynab_lending_accounts: List[str] = kwargs.get('xfer_ynab_lending_accounts', None)
         self.xfer_lending_accounts: List[str] = kwargs.get('xfer_lending_accounts', None)
         self.xfer_default_payee: str = kwargs.get('xfer_default_payee', None)
+        self.xfer_default_lending_payee: str = kwargs.get('xfer_default_lending_payee', None)
         self.xfer_default_payback_payee: str = kwargs.get('xfer_default_payback_payee', None)
         self.xfer_default_borrowing_payee: str = kwargs.get('xfer_default_borrowing_payee', None)
         self.xfer_default_payment_payee: str = kwargs.get('xfer_default_payment_payee', None)
