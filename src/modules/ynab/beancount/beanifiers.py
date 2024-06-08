@@ -1,7 +1,7 @@
 import logging
 from abc import ABC, abstractmethod
 from decimal import getcontext
-from typing import List, NamedTuple, Set
+from typing import List, NamedTuple, Set, Dict
 
 from beancount.core.data import Meta, Posting
 
@@ -227,11 +227,29 @@ class InvestmentBeanifier(YNABBeanifier):
         return builder.build()
 
 
+def __normalize_transfers(transactions: List[YNABTransaction]) -> Dict[str, str]:
+    byid = {}
+    for t in transactions:
+        for s in t.subtransactions + [t] if t.subtransactions else [t]:
+            byid[s.id] = s
+    transfer_types = {}
+    for t in transactions:
+        if t.transfer_transaction_id:
+            transfer_types[t.id] = 'Transaction'
+            byid[t.transfer_transaction_id].transfer_transaction_id = t.id
+        for s in t.subtransactions:
+            if s.transfer_transaction_id:
+                transfer_types[s.id] = 'Subtransaction'
+                byid[s.transfer_transaction_id].transfer_transaction_id = s.id
+    return transfer_types
+
+
 def beanify(settings: Settings, transactions: List[YNABTransaction]) -> List[NamedTuple]:
     assert settings is not None
     assert transactions is not None
     assert len(transactions) > 0
     getcontext().prec = 60
+    transfer_types = __normalize_transfers(transactions)
     beancount_transactions = []
     handled_transfers = []
     handled_transactions = []
@@ -244,6 +262,9 @@ def beanify(settings: Settings, transactions: List[YNABTransaction]) -> List[Nam
                 log.info(f'skipping transaction: {processed_t.describe(sep=" >> ")}')
                 continue
             try:
+                if transfer_types.get(t.transfer_transaction_id, None) == 'Subtransaction':
+                    log.debug(f'skipping transfer to be handled as subtransaction: {processed_t.describe(sep=" >> ")}')
+                    continue
                 btxn = YNABBeanifier.factory(processed_t, settings).beanify()
                 beancount_transactions.append(btxn)
                 handled_transactions.append(t.id)
