@@ -30,7 +30,7 @@ class YNABBeanifier(ABC):
 
     def _get_tags(self) -> Set[str]:
         tags = set()
-        for xtr in self.settings.extractors_meta:
+        for xtr in self.settings.extractors_tags:
             tags = tags.union([lowerdashed(t) for t in xtr.extract(self.txn, [])])
         return tags
 
@@ -246,7 +246,7 @@ def beanify(settings: Settings, transactions: List[YNABTransaction]) -> List[Nam
                 btxn = YNABBeanifier.factory(processed_t, settings).beanify()
                 beancount_transactions.append(btxn)
                 handled_transactions.append(t.id)
-                for subt in (t.subtransactions if t.subtransactions + [t] else [t]):
+                for subt in (t.subtransactions + [t] if t.subtransactions else [t]):
                     if subt.transfer_transaction_id:
                         log.debug(f'transaction is a transfer - marking other side as handled')
                         handled_transfers.append(subt.transfer_transaction_id)
