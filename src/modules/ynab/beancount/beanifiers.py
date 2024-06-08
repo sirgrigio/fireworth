@@ -144,7 +144,7 @@ class TransferBeanifier(YNABBeanifier):
             if any([self.txn.payee_name == f'Transfer : {a}' for a in self.settings.xfer_ynab_lending_accounts]):
                 dst_accs = [f'{dst_accs[0]}:{r}' for r in recipients]
         return self._postify(
-            self.txn.amount,
+            -self.txn.amount,
             src_accs=src_accs,
             dst_accs=dst_accs,
             meta=self._get_meta() if include_meta else None
