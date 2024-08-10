@@ -1,7 +1,7 @@
 import logging
 from abc import ABC, abstractmethod
 from decimal import getcontext
-from typing import List, NamedTuple, Set, Dict
+from typing import List, Set, Dict
 
 from beancount.core.data import Meta, Posting
 
@@ -11,8 +11,9 @@ from src.modules.ynab.api.models.transactions import \
     Transaction as YNABTransaction
 from src.modules.ynab.beancount.builders import (BeanPostingBuilder,
                                                  BeanTransactionBuilder)
-from src.modules.ynab.beancount.preprocessors import Preprocessor
+from src.modules.ynab.beancount.processors import Processor
 from src.modules.ynab.beancount.settings import Settings
+from src.modules.ynab.beancount.utils.beancount import BeancountTransaction
 from src.modules.ynab.beancount.utils.strings import camelcased, lowerdashed
 
 log = logging.getLogger(__name__)
@@ -66,7 +67,7 @@ class YNABBeanifier(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def beanify(self) -> NamedTuple:
+    def beanify(self) -> BeancountTransaction:
         raise NotImplementedError()
 
     @staticmethod
@@ -89,7 +90,7 @@ class ExpenseBeanifier(YNABBeanifier):
             meta=self._get_meta() if include_meta else None
         )
 
-    def beanify(self) -> NamedTuple:
+    def beanify(self) -> BeancountTransaction:
         builder = BeanTransactionBuilder()
         builder.set_date(self.txn.date)
         builder.set_tags(self._get_tags())
@@ -118,7 +119,7 @@ class InflowBeanifier(YNABBeanifier):
             meta=self._get_meta() if include_meta else None
         )
 
-    def beanify(self) -> NamedTuple:
+    def beanify(self) -> BeancountTransaction:
         builder = BeanTransactionBuilder()
         builder.set_date(self.txn.date)
         builder.set_tags(self._get_tags())
@@ -150,7 +151,7 @@ class TransferBeanifier(YNABBeanifier):
             meta=self._get_meta() if include_meta else None
         )
 
-    def beanify(self) -> NamedTuple:
+    def beanify(self) -> BeancountTransaction:
         builder = BeanTransactionBuilder()
         builder.set_date(self.txn.date)
         builder.set_tags(self._get_tags())
@@ -210,7 +211,7 @@ class InvestmentBeanifier(YNABBeanifier):
             meta=self._get_meta() if include_meta else None
         )
 
-    def beanify(self) -> NamedTuple:
+    def beanify(self) -> BeancountTransaction:
         builder = BeanTransactionBuilder()
         builder.set_date(self.txn.date)
         builder.set_tags(self._get_tags())
@@ -244,7 +245,7 @@ def __normalize_transfers(transactions: List[YNABTransaction]) -> Dict[str, str]
     return transfer_types
 
 
-def beanify(settings: Settings, transactions: List[YNABTransaction]) -> List[NamedTuple]:
+def beanify(settings: Settings, transactions: List[YNABTransaction]) -> List[BeancountTransaction]:
     assert settings is not None
     assert transactions is not None
     assert len(transactions) > 0
@@ -256,7 +257,7 @@ def beanify(settings: Settings, transactions: List[YNABTransaction]) -> List[Nam
     for t in transactions:
         log.debug(f'handling transaction: {t.describe(sep=" >> ")}')
         if t.id not in handled_transfers:
-            processed_t = Preprocessor.apply(settings.preprocessors, t)
+            processed_t = Processor.apply(settings.preprocessors, t)
             log.debug(f'preprocessed transaction: {processed_t.describe(sep=" >> ")}')
             if any([c.match(processed_t) for c in settings.skip_conditions]):
                 log.info(f'skipping transaction: {processed_t.describe(sep=" >> ")}')
@@ -265,8 +266,9 @@ def beanify(settings: Settings, transactions: List[YNABTransaction]) -> List[Nam
                 if transfer_types.get(t.transfer_transaction_id, None) == 'Subtransaction':
                     log.debug(f'skipping transfer to be handled as subtransaction: {processed_t.describe(sep=" >> ")}')
                     continue
-                btxn = YNABBeanifier.factory(processed_t, settings).beanify()
-                beancount_transactions.append(btxn)
+                btxn: BeancountTransaction = YNABBeanifier.factory(processed_t, settings).beanify()
+                p_btxn: BeancountTransaction = Processor.apply(settings.postprocessors, btxn)
+                beancount_transactions.append(p_btxn.to_transaction())
                 handled_transactions.append(t.id)
                 for subt in (t.subtransactions + [t] if t.subtransactions else [t]):
                     if subt.transfer_transaction_id:

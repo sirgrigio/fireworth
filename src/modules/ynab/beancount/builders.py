@@ -1,11 +1,11 @@
 import datetime
 from decimal import Decimal
 from functools import cmp_to_key
-from typing import List, NamedTuple, Set, Union
+from typing import List, NamedTuple, Set
 
-from beancount.core.data import (Account, Amount, Cost, CostSpec, Flag, Meta,
-                                 Posting, Transaction)
+from beancount.core.data import Amount, Cost, CostSpec, Flag, Meta, Posting
 
+from src.modules.ynab.beancount.utils.beancount import BeancountTransaction
 from src.modules.ynab.beancount.utils.postings import cmp, combine
 
 
@@ -72,67 +72,42 @@ class BeanPostingBuilder:
         return product
 
 
-class _Transaction:
-
-    def __init__(self):
-        self._date: datetime.date = None
-        self._payee: str = None
-        self._flag: str = '*'
-        self._narration: str = None
-        self._tags: Set[str] = []
-        self._meta: Meta = {}
-        self._links: Set[str] = []
-        self._postings: List[Posting] = []
-
-    def to_transaction(self) -> NamedTuple:
-        return Transaction(
-            self._meta,
-            self._date,
-            self._flag,
-            self._payee,
-            self._narration,
-            self._tags,
-            self._links,
-            self._postings
-        )
-
-
 class BeanTransactionBuilder:
 
     def __init__(self):
-        self.__txn: _Transaction = _Transaction()
+        self.__txn = BeancountTransaction()
 
     def set_date(self, date: datetime.date) -> "BeanTransactionBuilder":
         assert date is not None
-        self.__txn._date = date
+        self.__txn.date = date
         return self
 
     def set_payee(self, payee: str) -> "BeanTransactionBuilder":
         assert payee is not None
-        self.__txn._payee = payee.strip() if payee else None
+        self.__txn.payee = payee.strip() if payee else None
         return self
 
     def set_narration(self, narration: str) -> "BeanTransactionBuilder":
-        self.__txn._narration = narration.strip() if narration else None
+        self.__txn.narration = narration.strip() if narration else None
         return self
 
     def set_tags(self, tags: Set[str]) -> "BeanTransactionBuilder":
-        self.__txn._tags = tags
+        self.__txn.tags = tags
         return self
 
     def set_meta(self, meta: Meta) -> "BeanTransactionBuilder":
-        self.__txn._meta = meta
+        self.__txn.meta = meta
         return self
 
     def set_postings(self, postings: List[Posting]) -> "BeanTransactionBuilder":
         if not postings:
             postings = []
-        self.__txn._postings = postings
+        self.__txn.postings = postings
         return self
 
     def add_posting(self, posting: Posting, merge=True) -> "BeanTransactionBuilder":
         assert posting is not None
-        postings = self.__txn._postings
+        postings = self.__txn.postings
         added = False
         if merge:
             for i in range(len(postings)):
@@ -143,14 +118,14 @@ class BeanTransactionBuilder:
                     break
         if not added:
             postings.append(posting)
-        self.__txn._postings = sorted(postings, key=cmp_to_key(cmp))
+        self.__txn.postings = sorted(postings, key=cmp_to_key(cmp))
         return self
 
     def current_postings(self) -> List[Posting]:
-        return self.__txn._postings
+        return self.__txn.postings
 
-    def build(self, clear=True) -> NamedTuple:
-        product = self.__txn.to_transaction()
+    def build(self, clear=True) -> BeancountTransaction:
+        product = self.__txn
         if clear:
-            self.__txn = _Transaction()
+            self.__txn = BeancountTransaction()
         return product

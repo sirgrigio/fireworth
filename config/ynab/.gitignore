@@ -5,6 +5,7 @@ expenses.json
 inflows.json
 
 preprocessors.yml
+postprocessors.yml
 extractors_meta.yml
 extractors_recipients.yml
 extractors_tags.yml

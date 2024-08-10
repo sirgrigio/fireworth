@@ -1,0 +1,13 @@
+# FIELDS
+# payee: str
+# narration: str
+
+processors:
+- if:
+    <field>: <regex>
+  then:
+    - <field>: <value>
+- replace:
+  field: <field>
+  pattern: <regex>
+  value: <value>

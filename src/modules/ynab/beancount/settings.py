@@ -4,7 +4,7 @@ from typing import List
 import yaml
 import os
 
-from src.modules.ynab.beancount import extractors, preprocessors, mergers
+from src.modules.ynab.beancount import extractors, mergers, processors
 from src.modules.ynab.beancount.mappers import MultiValueMapper, SingleValueMapper
 import logging
 
@@ -37,8 +37,10 @@ class Settings:
         def __load_or_else(filename, path_loader, else_value):
             return path_loader(Path(filename)) if filename else else_value
 
-        self.preprocessors: List[preprocessors.Preprocessor] = __load_or_else(
-            __get_filename('preprocessors_file'), preprocessors.from_yml_file, [])
+        self.preprocessors: List[processors.Processor] = __load_or_else(
+            __get_filename('preprocessors_file'), processors.from_yml_file, [])
+        self.postprocessors: List[processors.Processor] = __load_or_else(
+            __get_filename('postprocessors_file'), processors.from_yml_file, [])
 
         self.mergers: List[mergers.Merger] = __load_or_else(
             __get_filename('mergers_file'), mergers.from_yml_file, [])

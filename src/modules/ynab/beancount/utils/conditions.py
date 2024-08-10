@@ -20,10 +20,20 @@ class StrFieldCondition(Condition):
         self.__field = field
         self.__pattern = pattern
 
-    def match(self, object: Any) -> bool:
+    def _interpolate(self, obj: Any) -> str:
+        if not self.__pattern:
+            return self.__pattern
+        pattern_int = self.__pattern
+        for var in re.findall(r'\$(\w+)', pattern_int):
+            repl = getattr(obj, var)
+            pattern_int = re.sub('\$' + var, repl if repl else '', pattern_int)
+        return pattern_int
+
+    def match(self, object: Any, interpolate=True) -> bool:
         value = getattr(object, self.__field, None)
-        return ((not self.__pattern and not value)
-            or (self.__pattern and value and re.search(self.__pattern, value)))
+        pattern = self._interpolate(object) if interpolate else self.__pattern
+        return ((not pattern and not value)
+            or (pattern and value and re.search(pattern, value)))
 
     def __repr__(self) -> str:
         return f'{self.__field} ~ "{self.__pattern}"'

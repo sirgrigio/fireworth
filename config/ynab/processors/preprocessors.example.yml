@@ -18,11 +18,11 @@
 # payee_name: Optional[str]
 # category_name: Optional[str]
 
-preprocessors:
+processors:
 - if:
     <field>: <regex>
   then:
-    <field>: <value>
+    - <field>: <value>
 - replace:
   field: <field>
   pattern: <regex>
