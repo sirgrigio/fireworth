@@ -11,6 +11,7 @@ from src.modules.ynab.api.models.transactions import \
     Transaction as YNABTransaction
 from src.modules.ynab.beancount.builders import (BeanPostingBuilder,
                                                  BeanTransactionBuilder)
+from src.modules.ynab.beancount.mergers import Merger
 from src.modules.ynab.beancount.processors import Processor
 from src.modules.ynab.beancount.settings import Settings
 from src.modules.ynab.beancount.utils.beancount import BeancountTransaction
@@ -254,6 +255,8 @@ def beanify(settings: Settings, transactions: List[YNABTransaction]) -> List[Bea
     beancount_transactions = []
     handled_transfers = []
     handled_transactions = []
+    log.debug(f'applying mergers before processing single transactions')
+    transactions = Merger.apply(settings.mergers, transactions)
     for t in transactions:
         log.debug(f'handling transaction: {t.describe(sep=" >> ")}')
         if t.id not in handled_transfers:
