@@ -30,7 +30,7 @@ class Processor(ABC):
         elif isinstance(obj, BeancountTransaction):
             return BeancountTransaction.from_dict(obj.__dict__)
         else:
-            self.log.warn(f'received unknown object to copy of type {type(obj)}')
+            self.log.warning(f'received unknown object to copy of type {type(obj)}')
             return None
 
     def apply_to(self, obj: Transaction) -> Transaction:
@@ -120,7 +120,7 @@ class ReplaceProcessor(Processor):
         )
 
     def __repr__(self) -> str:
-        return f'ReplacePrep({self.__field})["{self.__pattern}" -> "{self.__value}"]'
+        return f'ReplaceProc({self.__field})["{self.__pattern}" -> "{self.__value}"]'
 
 
 class IfThenProcessor(Processor):
@@ -149,7 +149,7 @@ class IfThenProcessor(Processor):
             '; '.join([f'{f} = "{v}"' for f,v in a.items()])
             for a in self.__actions
         ])
-        return f'IfThenPrep({conditions})' + '{' + actions + '}'
+        return f'IfThenProc({conditions})' + '{' + actions + '}'
 
 
 def from_yml_file(filename: Path | str, node: List[str]=['processors']) -> List[Processor]:
@@ -172,7 +172,7 @@ def from_yml_file(filename: Path | str, node: List[str]=['processors']) -> List[
             elif 'replace' in item:
                 processor = ReplaceProcessor(**item['replace'])
             else:
-                log.warn(f'{filename}: unknown processor {item} -- skipping')
+                log.warning(f'{filename}: unknown processor {item} -- skipping')
             if processor:
                 processors.append(processor)
                 log.info(f'{filename}: loaded processor {processor}')

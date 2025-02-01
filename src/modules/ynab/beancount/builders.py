@@ -3,7 +3,8 @@ from decimal import Decimal
 from functools import cmp_to_key
 from typing import List, NamedTuple, Set
 
-from beancount.core.data import Amount, Cost, CostSpec, Flag, Meta, Posting
+from beancount.core.data import Amount, Flag, Meta, Posting
+from beancount.core.position import Cost, CostSpec
 
 from src.modules.ynab.beancount.utils.beancount import BeancountTransaction
 from src.modules.ynab.beancount.utils.postings import cmp, combine
@@ -48,14 +49,19 @@ class BeanPostingBuilder:
         )
         return self
 
-    def set_cost(self, cost) -> "BeanPostingBuilder":
+    def set_cost(self, cost: int, currency: str='EUR', precision=2) -> "BeanPostingBuilder":
         assert cost is not None
-        self.__pst._cost = cost
+        self.__pst._cost = Cost(
+            Decimal(cost/1000).quantize(Decimal(10)**-precision),
+            currency,
+            None,
+            None
+        )
         return self
 
     def set_price(self, price: int, currency: str='EUR', precision=2) -> "BeanPostingBuilder":
         assert price is not None
-        self.__pst._units = Amount(
+        self.__pst._price = Amount(
             Decimal(price/1000).quantize(Decimal(10)**-precision),
             currency
         )

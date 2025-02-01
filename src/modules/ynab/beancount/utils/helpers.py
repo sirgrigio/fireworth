@@ -5,6 +5,8 @@ from src.modules.ynab.api.models.transactions import (Subtransaction,
                                                       Transaction)
 from src.modules.ynab.beancount.utils.strings import camelcased
 
+from src.modules.ynab.beancount.parsers import FinancialInstrumentTransactionParser
+
 log = logging.getLogger(__name__)
 
 
@@ -37,7 +39,7 @@ class MappingHelper:
                 inflows.update(__inflow(_))
         return inflows
 
-    def expenses(self, expand_all=False, suggestions=True) -> Dict[str, Dict[str, str]]:
+    def expenses(self, expand_all=False) -> Dict[str, Dict[str, str]]:
         expenses = {}
         categories_to_expand = []
         for t in self.__txns:
@@ -61,3 +63,18 @@ class MappingHelper:
             if not c in categories_to_expand and not expand_all:
                 expenses[c] = {'.': expenses[c]['.']}
         return expenses
+
+
+    def investment_accounts(self, parsers: List[FinancialInstrumentTransactionParser]) -> Dict[str, str]:
+        accounts = {}
+        for t in self.__txns:
+            if t.payee_name == 'Transfer : Investments':
+                for parser in parsers:
+                    fitxn = parser.parse(t)
+                    if fitxn:
+                        accounts.update({fitxn.src_acc: ''})
+                        accounts.update({fitxn.dst_acc: ''})
+                        accounts.update({fitxn.symbol: ''})
+                        accounts.update({fitxn.xcurr_a: ''})
+                        accounts.update({fitxn.xcurr_b: ''})
+        return accounts

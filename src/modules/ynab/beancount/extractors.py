@@ -122,7 +122,7 @@ def from_yml_file(filename: Path | str, node: List[str]=['extractors']) -> List[
                     remove_after=item['keyvalue'].get('remove_after', True)
                 )
             else:
-                log.warn(f'unknown extractor {item} -- skipping')
+                log.warning(f'unknown extractor {item} -- skipping')
             if extractor:
                 extractors.append(extractor)
                 log.info(f'loaded extractor {extractor}')

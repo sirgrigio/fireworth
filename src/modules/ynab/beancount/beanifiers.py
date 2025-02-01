@@ -1,7 +1,8 @@
 import logging
+import math
 from abc import ABC, abstractmethod
 from decimal import getcontext
-from typing import List, Set, Dict
+from typing import Dict, List, Set
 
 from beancount.core.data import Meta, Posting
 
@@ -14,7 +15,9 @@ from src.modules.ynab.beancount.builders import (BeanPostingBuilder,
 from src.modules.ynab.beancount.mergers import Merger
 from src.modules.ynab.beancount.processors import Processor
 from src.modules.ynab.beancount.settings import Settings
-from src.modules.ynab.beancount.utils.beancount import BeancountTransaction
+from src.modules.ynab.beancount.utils.beancount import (BeancountOpen,
+                                                        BeancountTransaction)
+from src.modules.ynab.beancount.utils.fi_transaction import FITransaction
 from src.modules.ynab.beancount.utils.strings import camelcased, lowerdashed
 
 log = logging.getLogger(__name__)
@@ -49,6 +52,20 @@ class YNABBeanifier(ABC):
             recipients = recipients.union([camelcased(r) for r in xtr.extract(self.txn, [])])
         return recipients
 
+    def _estimate_precision(self, x: int | float) -> int:
+        max_digits = 14
+        int_part = int(abs(x))
+        magnitude = 1 if int_part == 0 else int(math.log10(int_part)) + 1
+        if magnitude >= max_digits:
+            return (magnitude, 0)
+        frac_part = abs(x) - int_part
+        multiplier = 10 ** (max_digits - magnitude)
+        frac_digits = multiplier + int(multiplier * frac_part + 0.5)
+        while frac_digits % 10 == 0:
+            frac_digits /= 10
+        scale = int(math.log10(frac_digits))
+        return scale
+
     def _postify(self, amount: int, src_accs: List[str]=[], dst_accs: List[str]=[], meta: Meta=None) -> List[Posting]:
         assert len(src_accs) > 0
         assert len(dst_accs) > 0
@@ -63,6 +80,34 @@ class YNABBeanifier(ABC):
             postings.append(builder.set_account(acc).build(clear=False))
         return postings
 
+    def _postify_fi_txn(
+            self,
+            symbol: str=None,
+            quantity: float=None,
+            unit_price: float=None,
+            currency: str=None,
+            src_acc: str=None,
+            dst_acc: str=None,
+            meta: Meta=None
+            ) -> List[Posting]:
+        assert symbol is not None
+        assert src_acc is not None
+        assert dst_acc is not None
+        postings = []
+        builder = BeanPostingBuilder()
+        q_precision = self._estimate_precision(quantity)
+        p_precision = self._estimate_precision(unit_price)
+        builder.set_account(src_acc)
+        builder.set_units(-quantity * unit_price * 1000, currency=currency, precision=max(q_precision, p_precision))
+        builder.set_meta(meta)
+        postings.append(builder.build())
+        builder.set_account(dst_acc)
+        builder.set_units(quantity * 1000, currency=symbol, precision=q_precision)
+        builder.set_cost(unit_price * 1000, currency=currency, precision=p_precision)
+        builder.set_meta(meta)
+        postings.append(builder.build())
+        return postings
+
     @abstractmethod
     def postify(self, include_meta=True) -> List[Posting]:
         raise NotImplementedError()
@@ -73,7 +118,9 @@ class YNABBeanifier(ABC):
 
     @staticmethod
     def factory(txn: YNABTransaction, settings: Settings=None) -> "YNABBeanifier":
-        if txn.transfer_account_id:
+        if txn.payee_name == 'Transfer : Investments':
+            return InvestmentBeanifier(txn, settings=settings)
+        elif txn.transfer_account_id:
             return TransferBeanifier(txn, settings=settings)
         elif txn.amount > 0:
             return InflowBeanifier(txn, settings=settings)
@@ -197,18 +244,27 @@ class TransferBeanifier(YNABBeanifier):
 class InvestmentBeanifier(YNABBeanifier):
 
     def postify(self, include_meta=True) -> List[Posting]:
-        src_accs = [self.settings.mapper_accounts.map(self.txn.account_name)]
-        dst_accs = [self.settings.mapper_accounts.map(self.txn.payee_name.split(':')[1].strip())]
-        recipients = self._get_recipients()
-        if recipients:
-            if self.txn.account_name in self.settings.xfer_ynab_lending_accounts:
-                src_accs = [f'{src_accs[0]}:{r}' for r in recipients]
-            if any([self.txn.payee_name == f'Transfer : {a}' for a in self.settings.xfer_ynab_lending_accounts]):
-                dst_accs = [f'{dst_accs[0]}:{r}' for r in recipients]
-        return self._postify(
-            self.txn.amount,
-            src_accs=src_accs,
-            dst_accs=dst_accs,
+        fitxn: FITransaction = None
+        for parser in self.settings.parsers:
+            fitxn: FITransaction = parser.parse(self.txn)
+            if fitxn:
+                break
+        assert fitxn is not None
+
+        if self.txn.account_name in self.settings.xfer_ynab_financial_instrument_accounts and not self.txn.transfer_account_id:
+            src_acc = self.settings.mapper_accounts.map(fitxn.src_acc or fitxn.symbol or fitxn.xcurr_a)
+            dst_acc = self.settings.mapper_accounts.map(fitxn.dst_acc or fitxn.symbol or fitxn.xcurr_a)
+        elif self.txn.account_name not in self.settings.xfer_ynab_financial_instrument_accounts:
+            src_acc = self.settings.mapper_accounts.map(fitxn.src_acc or self.txn.account_name)
+            dst_acc = self.settings.mapper_accounts.map(fitxn.dst_acc or fitxn.symbol or fitxn.xcurr_a)
+
+        return self._postify_fi_txn(
+            symbol=fitxn.symbol,
+            quantity=fitxn.quantity,
+            unit_price=fitxn.unit_price,
+            currency=fitxn.currency,
+            src_acc=src_acc,
+            dst_acc=dst_acc,
             meta=self._get_meta() if include_meta else None
         )
 
@@ -222,10 +278,8 @@ class InvestmentBeanifier(YNABBeanifier):
         for t in txns_to_postify:
             for p in YNABBeanifier.factory(t, self.settings).postify(include_meta=len(txns_to_postify)>1):
                 builder.add_posting(p)
-        postings = builder.current_postings()
-
-
-
+        builder.set_payee('FinInstTxn')
+        builder.set_narration(self.txn.memo)
         return builder.build()
 
 
@@ -253,6 +307,7 @@ def beanify(settings: Settings, transactions: List[YNABTransaction]) -> List[Bea
     getcontext().prec = 60
     transfer_types = __normalize_transfers(transactions)
     beancount_transactions = []
+    handled_accounts = set()
     handled_transfers = []
     handled_transactions = []
     log.debug(f'applying mergers before processing single transactions')
@@ -271,6 +326,10 @@ def beanify(settings: Settings, transactions: List[YNABTransaction]) -> List[Bea
                     continue
                 btxn: BeancountTransaction = YNABBeanifier.factory(processed_t, settings).beanify()
                 p_btxn: BeancountTransaction = Processor.apply(settings.postprocessors, btxn)
+                for posting in p_btxn.postings:
+                    if posting.account not in handled_accounts:
+                        beancount_transactions.append(BeancountOpen(p_btxn.date, posting.account).to_open())
+                        handled_accounts.add(posting.account)
                 beancount_transactions.append(p_btxn.to_transaction())
                 handled_transactions.append(t.id)
                 for subt in (t.subtransactions + [t] if t.subtransactions else [t]):

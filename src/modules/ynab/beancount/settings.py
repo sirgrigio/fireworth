@@ -4,7 +4,7 @@ from typing import List
 import yaml
 import os
 
-from src.modules.ynab.beancount import extractors, mergers, processors
+from src.modules.ynab.beancount import extractors, mergers, parsers, processors
 from src.modules.ynab.beancount.mappers import MultiValueMapper, SingleValueMapper
 import logging
 
@@ -28,7 +28,7 @@ class Settings:
         self.xfer_default_borrowing_payee: str = kwargs.get('xfer_default_borrowing_payee', None)
         self.xfer_default_payment_payee: str = kwargs.get('xfer_default_payment_payee', None)
 
-        self.xfer_ynab_investment_accounts: List[str] = kwargs.get('xfer_ynab_investment_accounts', None)
+        self.xfer_ynab_financial_instrument_accounts: List[str] = kwargs.get('xfer_ynab_financial_instrument_accounts', None)
 
         def __get_filename(key):
             filename = kwargs.get(key, None)
@@ -58,6 +58,9 @@ class Settings:
             __get_filename('extractors_recipients_file'), extractors.from_yml_file, [])
         self.extractors_tags: List[extractors.SimpleExtractor] = __load_or_else(
             __get_filename('extractors_tags_file'), extractors.from_yml_file, [])
+
+        self.parsers: List[parsers.Parser] = __load_or_else(
+            __get_filename('parser_financial_instrument_transactions'), parsers.from_yml_file, [])
 
         self.skip_conditions = []
         for condition in kwargs.get('skip', {}):

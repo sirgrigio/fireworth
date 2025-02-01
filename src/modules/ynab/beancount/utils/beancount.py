@@ -1,6 +1,25 @@
 import datetime
 from typing import Any, List, NamedTuple, Set
-from beancount.core.data import Meta, Posting, Transaction
+from beancount.core.data import Meta, Posting, Transaction, Open
+
+
+class BeancountOpen:
+
+    def __init__(self, date: datetime.date, account: str, meta: Meta=None):
+        self.date: datetime.date = date
+        self.account: str = account
+        self.meta: Meta = meta
+
+    def to_open(self) -> NamedTuple:
+        return Open(self.meta, self.date, self.account, None, None)
+
+    @staticmethod
+    def from_dict(obj: Any) -> "BeancountOpen":
+        assert isinstance(obj, dict)
+        return BeancountOpen(
+            date=obj.get('date', None),
+            account=obj.get('account', None),
+        )
 
 
 class BeancountTransaction:

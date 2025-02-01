@@ -11,3 +11,5 @@ extractors_recipients.yml
 extractors_tags.yml
 
 mergers.yml
+
+parser_fi_transactions.yml
