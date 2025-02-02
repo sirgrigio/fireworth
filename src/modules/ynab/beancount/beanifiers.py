@@ -96,14 +96,19 @@ class YNABBeanifier(ABC):
         postings = []
         builder = BeanPostingBuilder()
         q_precision = self._estimate_precision(quantity)
-        p_precision = self._estimate_precision(unit_price)
+        p_precision = max(self._estimate_precision(unit_price), 2)
         builder.set_account(src_acc)
         builder.set_units(-quantity * unit_price * 1000, currency=currency, precision=max(q_precision, p_precision))
         builder.set_meta(meta)
         postings.append(builder.build())
         builder.set_account(dst_acc)
         builder.set_units(quantity * 1000, currency=symbol, precision=q_precision)
-        builder.set_cost(unit_price * 1000, currency=currency, precision=p_precision)
+        if quantity > 0:
+            # it's a buy operation at a certain cost
+            builder.set_cost(unit_price * 1000, currency=currency, precision=p_precision)
+        else:
+            # it's a sell operation at a certain price
+            builder.set_price(unit_price * 1000, currency=currency, precision=p_precision)
         builder.set_meta(meta)
         postings.append(builder.build())
         return postings

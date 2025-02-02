@@ -69,8 +69,12 @@ class FITransaction(ABC):
 
     @staticmethod
     def factory(type: str=None, **kwargs) -> "FITransaction":
-        if type == "BUY" or type == "SELL" or type == "MATURITY":
-            return BuySellTransaction(**kwargs)
+        if type == "BUY":
+            return BuyTransaction(**kwargs)
+        elif type == "SELL":
+            return SellTransaction(**kwargs)
+        elif type == "MATURITY":
+            return MaturityTransaction(**kwargs)
         elif type == "EXCHANGE":
             return ExchangeTransaction(**kwargs)
         elif type == "ACCRUAL" or type == "COUPON" or type == "DIVIDENDS":
@@ -119,7 +123,7 @@ class FITransaction(ABC):
         return self._xqt
 
 
-class BuySellTransaction(FITransaction):
+class BuyTransaction(FITransaction):
 
     def __init__(
             self,
@@ -146,6 +150,72 @@ class BuySellTransaction(FITransaction):
             xrate_ab=xrate_ab,
             xqt=xqt,
         )
+
+
+class SellTransaction(FITransaction):
+
+    def __init__(
+            self,
+            symbol: str=None,
+            src_acc: str=None,
+            dst_acc: str=None,
+            currency: str=None,
+            quantity: str=None,
+            unit_price: str=None,
+            xcurr_a: str=None,
+            xcurr_b: str=None,
+            xrate_ab: str=None,
+            xqt: str=None
+    ):
+        super().__init__(
+            symbol=symbol,
+            src_acc=src_acc,
+            dst_acc=dst_acc,
+            currency=currency,
+            quantity=quantity,
+            unit_price=unit_price,
+            xcurr_a=xcurr_a,
+            xcurr_b=xcurr_b,
+            xrate_ab=xrate_ab,
+            xqt=xqt,
+        )
+
+    @property
+    def quantity(self) -> int | float:
+        return -self._quantity
+
+
+class MaturityTransaction(FITransaction):
+
+    def __init__(
+            self,
+            symbol: str=None,
+            src_acc: str=None,
+            dst_acc: str=None,
+            currency: str=None,
+            quantity: str=None,
+            unit_price: str=None,
+            xcurr_a: str=None,
+            xcurr_b: str=None,
+            xrate_ab: str=None,
+            xqt: str=None
+    ):
+        super().__init__(
+            symbol=symbol,
+            src_acc=src_acc,
+            dst_acc=dst_acc,
+            currency=currency,
+            quantity=quantity,
+            unit_price=unit_price,
+            xcurr_a=xcurr_a,
+            xcurr_b=xcurr_b,
+            xrate_ab=xrate_ab,
+            xqt=xqt,
+        )
+
+    @property
+    def quantity(self) -> int | float:
+        return -self._quantity
 
 
 class ExchangeTransaction(FITransaction):
