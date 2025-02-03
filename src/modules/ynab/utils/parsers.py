@@ -33,6 +33,17 @@ def from_bool(x: Any) -> bool:
     return x
 
 
+def from_date(x: Any, nullable=False) -> datetime.date:
+    try:
+        assert isinstance(x, str) or isinstance(x, datetime.date)
+    except AssertionError as ex:
+        if nullable:
+            return from_none(x)
+        else:
+            raise ex
+    return dateutil.parser.parse(x).date() if isinstance(x, str) else x
+
+
 def from_datetime(x: Any) -> datetime:
     return dateutil.parser.parse(x)
 

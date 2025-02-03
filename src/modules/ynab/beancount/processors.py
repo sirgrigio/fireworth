@@ -1,16 +1,13 @@
+import logging
+import re
 from abc import ABC, abstractmethod
-from typing import Dict, List, Any, NamedTuple
-
 from pathlib import Path
+from typing import Any, Dict, List
 
 import yaml
 
-import re
-
-from src.modules.ynab.api.models.transactions import Subtransaction, Transaction
-
-import logging
-
+from src.modules.ynab.api.models.transactions import (Subtransaction,
+                                                      Transaction)
 from src.modules.ynab.beancount.utils.beancount import BeancountTransaction
 from src.modules.ynab.beancount.utils.conditions import StrFieldCondition
 

@@ -1,5 +1,5 @@
-from beancount.core.data import Posting
 from beancount.core.amount import add
+from beancount.core.data import Posting
 
 
 def cmp(p1: Posting, p2: Posting) -> int:

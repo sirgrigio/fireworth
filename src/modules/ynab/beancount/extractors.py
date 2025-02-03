@@ -1,11 +1,11 @@
 
 import logging
+import re
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any, Dict, List
 
 import yaml
-import re
 
 from src.modules.ynab.api.models.transactions import (Subtransaction,
                                                       Transaction)

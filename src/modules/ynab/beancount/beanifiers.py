@@ -1,3 +1,4 @@
+import datetime
 import logging
 import math
 from abc import ABC, abstractmethod
@@ -18,6 +19,7 @@ from src.modules.ynab.beancount.settings import Settings
 from src.modules.ynab.beancount.utils.beancount import (BeancountOpen,
                                                         BeancountTransaction)
 from src.modules.ynab.beancount.utils.fi_transaction import FITransaction
+from src.modules.ynab.beancount.utils.numbers import get_precision
 from src.modules.ynab.beancount.utils.strings import camelcased, lowerdashed
 
 log = logging.getLogger(__name__)
@@ -52,23 +54,10 @@ class YNABBeanifier(ABC):
             recipients = recipients.union([camelcased(r) for r in xtr.extract(self.txn, [])])
         return recipients
 
-    def _estimate_precision(self, x: int | float) -> int:
-        max_digits = 14
-        int_part = int(abs(x))
-        magnitude = 1 if int_part == 0 else int(math.log10(int_part)) + 1
-        if magnitude >= max_digits:
-            return (magnitude, 0)
-        frac_part = abs(x) - int_part
-        multiplier = 10 ** (max_digits - magnitude)
-        frac_digits = multiplier + int(multiplier * frac_part + 0.5)
-        while frac_digits % 10 == 0:
-            frac_digits /= 10
-        scale = int(math.log10(frac_digits))
-        return scale
-
     def _postify(self, amount: int, src_accs: List[str]=[], dst_accs: List[str]=[], meta: Meta=None) -> List[Posting]:
         assert len(src_accs) > 0
         assert len(dst_accs) > 0
+        amount = amount / 1000  # YNAB stores amounts using a 1000 multiplier
         postings = []
         builder = BeanPostingBuilder()
         builder.set_units(-amount / len(src_accs))
@@ -82,6 +71,7 @@ class YNABBeanifier(ABC):
 
     def _postify_fi_txn(
             self,
+            date: datetime.date=None,
             symbol: str=None,
             quantity: float=None,
             unit_price: float=None,
@@ -89,26 +79,28 @@ class YNABBeanifier(ABC):
             src_acc: str=None,
             dst_acc: str=None,
             meta: Meta=None
-            ) -> List[Posting]:
+    ) -> List[Posting]:
+        assert date is not None
         assert symbol is not None
         assert src_acc is not None
         assert dst_acc is not None
         postings = []
         builder = BeanPostingBuilder()
-        q_precision = self._estimate_precision(quantity)
-        p_precision = max(self._estimate_precision(unit_price), 2)
+        q_precision = get_precision(quantity)
+        p_precision = max(get_precision(unit_price), 2)
         builder.set_account(src_acc)
-        builder.set_units(-quantity * unit_price * 1000, currency=currency, precision=max(q_precision, p_precision))
+        builder.set_units(-quantity * unit_price, currency=currency, precision=max(q_precision, p_precision))
         builder.set_meta(meta)
         postings.append(builder.build())
         builder.set_account(dst_acc)
-        builder.set_units(quantity * 1000, currency=symbol, precision=q_precision)
+        builder.set_units(quantity, currency=symbol, precision=q_precision)
         if quantity > 0:
             # it's a buy operation at a certain cost
-            builder.set_cost(unit_price * 1000, currency=currency, precision=p_precision)
+            builder.set_cost(date, unit_price, currency=currency, precision=p_precision)
         else:
-            # it's a sell operation at a certain price
-            builder.set_price(unit_price * 1000, currency=currency, precision=p_precision)
+            # it's a sell operation at a certain price: use average booking
+            builder.set_price(unit_price, currency=currency, precision=p_precision)
+            builder.set_costspec(merge=True)
         builder.set_meta(meta)
         postings.append(builder.build())
         return postings
@@ -264,6 +256,7 @@ class InvestmentBeanifier(YNABBeanifier):
             dst_acc = self.settings.mapper_accounts.map(fitxn.dst_acc or fitxn.symbol or fitxn.xcurr_a)
 
         return self._postify_fi_txn(
+            date=self.txn.date,
             symbol=fitxn.symbol,
             quantity=fitxn.quantity,
             unit_price=fitxn.unit_price,

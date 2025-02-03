@@ -1,6 +1,7 @@
 import datetime
 from typing import Any, List, NamedTuple, Set
-from beancount.core.data import Meta, Posting, Transaction, Open
+
+from beancount.core.data import Meta, Open, Posting, Transaction
 
 
 class BeancountOpen:
@@ -33,8 +34,8 @@ class BeancountTransaction:
             tags: Set[str]=None,
             meta: Meta=None,
             links: Set[str]=None,
-            postings: List[Posting]=None
-        ):
+            postings: List[Posting]=None,
+    ):
         self.date: datetime.date = date
         self.payee: str = payee
         self.flag: str = flag

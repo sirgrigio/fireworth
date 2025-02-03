@@ -1,8 +1,6 @@
 from abc import ABC
 
-
-def _int_or_float(value: str) -> int | float:
-    return int(value) if '.' not in str(value) else float(value)
+from src.modules.ynab.beancount.utils.numbers import to_int_or_float
 
 
 class XRateWrapper:
@@ -50,13 +48,13 @@ class FITransaction(ABC):
             xcurr_a: str=None,
             xcurr_b: str=None,
             xrate_ab: str=None,
-            xqt: str=None
+            xqt: str=None,
     ):
         self._symbol = symbol
         self._src_acc = src_acc
         self._dst_acc = dst_acc
         self._currency = currency
-        self._quantity = _int_or_float(quantity) if quantity is not None else None
+        self._quantity = to_int_or_float(quantity) if quantity is not None else None
         self._unit_price = float(unit_price) if unit_price is not None else None
         self._xcurr_a = str(xcurr_a) if xcurr_a is not None else None
         self._xcurr_b = str(xcurr_b) if xcurr_b is not None else None
@@ -136,7 +134,7 @@ class BuyTransaction(FITransaction):
             xcurr_a: str=None,
             xcurr_b: str=None,
             xrate_ab: str=None,
-            xqt: str=None
+            xqt: str=None,
     ):
         super().__init__(
             symbol=symbol,
@@ -165,7 +163,7 @@ class SellTransaction(FITransaction):
             xcurr_a: str=None,
             xcurr_b: str=None,
             xrate_ab: str=None,
-            xqt: str=None
+            xqt: str=None,
     ):
         super().__init__(
             symbol=symbol,
@@ -198,7 +196,7 @@ class MaturityTransaction(FITransaction):
             xcurr_a: str=None,
             xcurr_b: str=None,
             xrate_ab: str=None,
-            xqt: str=None
+            xqt: str=None,
     ):
         super().__init__(
             symbol=symbol,
@@ -228,7 +226,7 @@ class ExchangeTransaction(FITransaction):
             xcurr_a: str=None,
             xcurr_b: str=None,
             xrate_ab: str=None,
-            xqt: str=None
+            xqt: str=None,
     ):
         super().__init__(
             src_acc=src_acc,

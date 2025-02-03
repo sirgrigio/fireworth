@@ -1,11 +1,7 @@
-from abc import ABC, abstractmethod
-from src.utils.ynab.transaction import YNABTransaction
-
-from pathlib import Path
-
-from typing import Any, Dict, Tuple
-
 import json
+from abc import ABC, abstractmethod
+from pathlib import Path
+from typing import Any, Dict, Tuple
 
 
 class Mapper(ABC):

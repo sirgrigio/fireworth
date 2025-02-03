@@ -3,9 +3,9 @@ from typing import Dict, List
 
 from src.modules.ynab.api.models.transactions import (Subtransaction,
                                                       Transaction)
+from src.modules.ynab.beancount.parsers import \
+    FinancialInstrumentTransactionParser
 from src.modules.ynab.beancount.utils.strings import camelcased
-
-from src.modules.ynab.beancount.parsers import FinancialInstrumentTransactionParser
 
 log = logging.getLogger(__name__)
 

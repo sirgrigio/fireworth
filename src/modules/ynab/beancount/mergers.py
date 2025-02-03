@@ -1,12 +1,10 @@
 
 import logging
-from abc import ABC, abstractmethod
+from collections import defaultdict
 from pathlib import Path
 from typing import Any, Dict, List
-from collections import defaultdict
 
 import yaml
-import re
 
 from src.modules.ynab.api.models.transactions import (Subtransaction,
                                                       Transaction)
@@ -37,8 +35,8 @@ class Merger:
     def __init__(
             self,
             fields: List[str],
-            selectors: List[Dict[str, str]]=[]
-            ):
+            selectors: List[Dict[str, str]]=[],
+    ):
         self.log = logging.getLogger(self.__class__.__name__)
         assert fields is not None
         assert len(fields) > 0

@@ -7,6 +7,7 @@ from beancount.core.data import Amount, Flag, Meta, Posting
 from beancount.core.position import Cost, CostSpec
 
 from src.modules.ynab.beancount.utils.beancount import BeancountTransaction
+from src.modules.ynab.beancount.utils.numbers import to_decimal
 from src.modules.ynab.beancount.utils.postings import cmp, combine
 
 
@@ -44,25 +45,50 @@ class BeanPostingBuilder:
     def set_units(self, amount: int, currency: str='EUR', precision=2) -> "BeanPostingBuilder":
         assert amount is not None
         self.__pst._units = Amount(
-            Decimal(amount/1000).quantize(Decimal(10)**-precision),
+            to_decimal(amount, precision),
             currency
         )
         return self
 
-    def set_cost(self, cost: int, currency: str='EUR', precision=2) -> "BeanPostingBuilder":
+    def set_cost(
+            self,
+            date: datetime.date|str=None,
+            cost: int=None,
+            currency: str=None,
+            precision=2,
+    ) -> "BeanPostingBuilder":
+        assert date is not None
         assert cost is not None
         self.__pst._cost = Cost(
-            Decimal(cost/1000).quantize(Decimal(10)**-precision),
+            to_decimal(cost, precision),
             currency,
-            None,
+            date,
             None
+        )
+        return self
+
+    def set_costspec(
+            self,
+            date: datetime.date=None,
+            cost: int=None,
+            currency: str=None,
+            merge=True,
+            precision=2,
+    ) -> "BeanPostingBuilder":
+        self.__pst._cost = CostSpec(
+            to_decimal(cost, precision) if cost else None,
+            None,
+            currency,
+            date,
+            None,
+            merge
         )
         return self
 
     def set_price(self, price: int, currency: str='EUR', precision=2) -> "BeanPostingBuilder":
         assert price is not None
         self.__pst._price = Amount(
-            Decimal(price/1000).quantize(Decimal(10)**-precision),
+            to_decimal(price, precision),
             currency
         )
         return self

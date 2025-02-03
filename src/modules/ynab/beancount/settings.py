@@ -1,13 +1,13 @@
+import logging
+import os
 from pathlib import Path
 from typing import List
 
 import yaml
-import os
 
 from src.modules.ynab.beancount import extractors, mergers, parsers, processors
-from src.modules.ynab.beancount.mappers import MultiValueMapper, SingleValueMapper
-import logging
-
+from src.modules.ynab.beancount.mappers import (MultiValueMapper,
+                                                SingleValueMapper)
 from src.modules.ynab.beancount.utils.conditions import StrFieldCondition
 
 log = logging.getLogger(__name__)

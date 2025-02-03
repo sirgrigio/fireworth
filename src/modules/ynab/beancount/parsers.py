@@ -1,11 +1,11 @@
 
 import logging
+import re
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any, Dict, List
 
 import yaml
-import re
 
 from src.modules.ynab.api.models.transactions import (Subtransaction,
                                                       Transaction)
@@ -72,7 +72,12 @@ class Parser(ABC):
 
 class FinancialInstrumentTransactionParser(Parser):
 
-    def __init__(self, default_currency: str='EUR', extractions: List[PropertyExtractor]=[], conditions: Dict[str, str]={}):
+    def __init__(
+            self,
+            default_currency: str='EUR',
+            extractions: List[PropertyExtractor]=[],
+            conditions: Dict[str, str]={},
+    ):
         super().__init__(extractions=extractions, conditions=conditions)
         self.__default_currency = default_currency
 

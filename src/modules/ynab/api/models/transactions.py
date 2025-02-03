@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import date, datetime
 from typing import Any, List, Optional
 
 from src.modules.ynab.utils import parsers
@@ -8,6 +9,7 @@ from src.modules.ynab.utils import parsers
 class Subtransaction:
     id: str
     transaction_id: str
+    date: Optional[date]
     amount: int
     memo: Optional[str]
     payee_id: Optional[str]
@@ -24,6 +26,7 @@ class Subtransaction:
         assert isinstance(obj, dict)
         sub_transaction_id = parsers.from_str(obj.get("id"))
         transaction_id = parsers.from_str(obj.get("transaction_id"))
+        date = parsers.from_date(obj.get("date"), True)
         amount = parsers.from_int(obj.get("amount"))
         memo = parsers.from_str(obj.get("memo"), True)
         payee_id = parsers.from_str(obj.get("payee_id"), True)
@@ -37,6 +40,7 @@ class Subtransaction:
         return Subtransaction(
             sub_transaction_id,
             transaction_id,
+            date,
             amount,
             memo,
             payee_id,
@@ -62,7 +66,7 @@ class Subtransaction:
 @dataclass
 class Transaction:
     id: str
-    date: str
+    date: date
     amount: int
     memo: Optional[str]
     cleared: str
@@ -85,7 +89,7 @@ class Transaction:
     def from_dict(obj: Any) -> "Transaction":
         assert isinstance(obj, dict)
         transaction_id = parsers.from_str(obj.get("id"))
-        date = parsers.from_str(obj.get("date"))
+        date = parsers.from_date(obj.get("date"), True)
         amount = parsers.from_int(obj.get("amount"))
         memo = parsers.from_str(obj.get("memo"), True)
         cleared = parsers.from_str(obj.get("cleared"))
@@ -109,6 +113,7 @@ class Transaction:
             obj.get("subtransactions")
         )
         for s in subtransactions:
+            s.date = date
             s.account_name = account_name
         return Transaction(
             transaction_id,
