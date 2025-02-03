@@ -51,6 +51,8 @@ class Settings:
             __get_filename('mapper_inflows_file'), SingleValueMapper.from_json_file, None)
         self.mapper_expenses: MultiValueMapper = __load_or_else(
             __get_filename('mapper_expenses_file'), MultiValueMapper.from_json_file, None)
+        self.mapper_pnl: SingleValueMapper = __load_or_else(
+            __get_filename('mapper_pnl_file'), SingleValueMapper.from_json_file, None)
 
         self.extractors_meta: List[extractors.KeyValueExtractor] = __load_or_else(
             __get_filename('extractors_meta_file'), extractors.from_yml_file, [])

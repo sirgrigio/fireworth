@@ -3,8 +3,13 @@ from beancount.core.data import Posting
 
 
 def cmp(p1: Posting, p2: Posting) -> int:
-    if (p1.units.number.is_signed() != p2.units.number.is_signed()
-        or p1.account == p2.account):
+    if (
+        p1.units is not None and p2.units is not None
+        and (
+            p1.units.number.is_signed() != p2.units.number.is_signed()
+            or p1.account == p2.account
+        )
+    ):
         return p1.units.number - p2.units.number
     else:
         return -1 if p1.account <= p2.account else 1

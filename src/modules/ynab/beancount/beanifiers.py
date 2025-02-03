@@ -18,7 +18,8 @@ from src.modules.ynab.beancount.processors import Processor
 from src.modules.ynab.beancount.settings import Settings
 from src.modules.ynab.beancount.utils.beancount import (BeancountOpen,
                                                         BeancountTransaction)
-from src.modules.ynab.beancount.utils.fi_transaction import FITransaction
+from src.modules.ynab.beancount.utils.fi_transaction import (
+    FITransaction, MaturityTransaction, SellTransaction)
 from src.modules.ynab.beancount.utils.numbers import get_precision
 from src.modules.ynab.beancount.utils.strings import camelcased, lowerdashed
 
@@ -78,7 +79,8 @@ class YNABBeanifier(ABC):
             currency: str=None,
             src_acc: str=None,
             dst_acc: str=None,
-            meta: Meta=None
+            meta: Meta=None,
+            pnl_acc: str=None,
     ) -> List[Posting]:
         assert date is not None
         assert symbol is not None
@@ -103,6 +105,10 @@ class YNABBeanifier(ABC):
             builder.set_costspec(merge=True)
         builder.set_meta(meta)
         postings.append(builder.build())
+        if pnl_acc is not None:
+            builder = BeanPostingBuilder()
+            builder.set_account(pnl_acc)
+            postings.append(builder.build())
         return postings
 
     @abstractmethod
@@ -255,6 +261,10 @@ class InvestmentBeanifier(YNABBeanifier):
             src_acc = self.settings.mapper_accounts.map(fitxn.src_acc or self.txn.account_name)
             dst_acc = self.settings.mapper_accounts.map(fitxn.dst_acc or fitxn.symbol or fitxn.xcurr_a)
 
+        pnl_acc = None
+        if isinstance(fitxn, SellTransaction) or isinstance(fitxn, MaturityTransaction):
+            pnl_acc = self.settings.mapper_pnl.map(dst_acc)
+
         return self._postify_fi_txn(
             date=self.txn.date,
             symbol=fitxn.symbol,
@@ -263,7 +273,8 @@ class InvestmentBeanifier(YNABBeanifier):
             currency=fitxn.currency,
             src_acc=src_acc,
             dst_acc=dst_acc,
-            meta=self._get_meta() if include_meta else None
+            meta=self._get_meta() if include_meta else None,
+            pnl_acc=pnl_acc
         )
 
     def beanify(self) -> BeancountTransaction:

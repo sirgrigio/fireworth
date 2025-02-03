@@ -3,6 +3,7 @@ settings.yml
 accounts.json
 expenses.json
 inflows.json
+pnl.json
 
 preprocessors.yml
 postprocessors.yml
