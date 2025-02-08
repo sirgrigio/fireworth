@@ -8,7 +8,7 @@ import yaml
 from src.modules.ynab.beancount import extractors, mergers, parsers, processors
 from src.modules.ynab.beancount.mappers import (MultiValueMapper,
                                                 SingleValueMapper)
-from src.modules.ynab.beancount.utils.conditions import StrFieldCondition
+from src.modules.ynab.beancount.utils.conditions import MultiStrFieldCondition
 
 log = logging.getLogger(__name__)
 
@@ -65,8 +65,8 @@ class Settings:
             __get_filename('parser_financial_instrument_transactions'), parsers.from_yml_file, [])
 
         self.skip_conditions = []
-        for condition in kwargs.get('skip', {}):
-            self.skip_conditions += [StrFieldCondition(k, v) for k,v in condition.items()]
+        for conditions in kwargs.get('skip', []):
+            self.skip_conditions.append(MultiStrFieldCondition(conditions))
 
 
     @staticmethod

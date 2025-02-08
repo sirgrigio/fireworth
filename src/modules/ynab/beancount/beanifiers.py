@@ -19,7 +19,7 @@ from src.modules.ynab.beancount.settings import Settings
 from src.modules.ynab.beancount.utils.beancount import (BeancountOpen,
                                                         BeancountTransaction)
 from src.modules.ynab.beancount.utils.fi_transaction import (
-    FITransaction, MaturityTransaction, SellTransaction)
+    CouponTransaction, DividendsTransaction, ExchangeTransaction, FITransaction, MaturityTransaction, SellTransaction, StartingBalanceTransaction)
 from src.modules.ynab.beancount.utils.numbers import get_precision
 from src.modules.ynab.beancount.utils.strings import camelcased, lowerdashed
 
@@ -55,16 +55,17 @@ class YNABBeanifier(ABC):
             recipients = recipients.union([camelcased(r) for r in xtr.extract(self.txn, [])])
         return recipients
 
-    def _postify(self, amount: int, src_accs: List[str]=[], dst_accs: List[str]=[], meta: Meta=None) -> List[Posting]:
+    def _postify(self, amount: int, src_accs: List[str]=[], dst_accs: List[str]=[], meta_src: Meta=None, meta_dst: Meta=None) -> List[Posting]:
         assert len(src_accs) > 0
         assert len(dst_accs) > 0
         amount = amount / 1000  # YNAB stores amounts using a 1000 multiplier
         postings = []
         builder = BeanPostingBuilder()
         builder.set_units(-amount / len(src_accs))
+        builder.set_meta(meta_src)
         for acc in src_accs:
             postings.append(builder.set_account(acc).build(clear=False))
-        builder.set_meta(meta)
+        builder.set_meta(meta_dst)
         builder.set_units(amount / len(dst_accs))
         for acc in dst_accs:
             postings.append(builder.set_account(acc).build(clear=False))
@@ -120,8 +121,23 @@ class YNABBeanifier(ABC):
         raise NotImplementedError()
 
     @staticmethod
+    def __is_investment_txn(txn: YNABTransaction, settings: Settings) -> bool:
+        return (
+            any([txn.payee_name == f'Transfer : {a}' for a in settings.xfer_ynab_financial_instrument_accounts])
+            or (
+                txn.account_name in settings.xfer_ynab_financial_instrument_accounts
+                and (
+                    txn.payee_name == 'Starting Balance'
+                    or txn.payee_name.startswith('FCY-XFR')
+                )
+            )
+            or txn.payee_name == 'Dividends'
+            or txn.payee_name == 'Coupon'
+        )
+
+    @staticmethod
     def factory(txn: YNABTransaction, settings: Settings=None) -> "YNABBeanifier":
-        if txn.payee_name == 'Transfer : Investments':
+        if YNABBeanifier.__is_investment_txn(txn, settings):
             return InvestmentBeanifier(txn, settings=settings)
         elif txn.transfer_account_id:
             return TransferBeanifier(txn, settings=settings)
@@ -138,7 +154,7 @@ class ExpenseBeanifier(YNABBeanifier):
             -self.txn.amount,
             src_accs=[self.settings.mapper_accounts.map(self.txn.account_name)],
             dst_accs=[self.settings.mapper_expenses.map((self.txn.category_name, self.txn.payee_name), default_key='.')],
-            meta=self._get_meta() if include_meta else None
+            meta_dst=self._get_meta() if include_meta else None
         )
 
     def beanify(self) -> BeancountTransaction:
@@ -167,7 +183,7 @@ class InflowBeanifier(YNABBeanifier):
             self.txn.amount,
             src_accs=[src_acc],
             dst_accs=[self.settings.mapper_accounts.map(self.txn.account_name)],
-            meta=self._get_meta() if include_meta else None
+            meta_dst=self._get_meta() if include_meta else None
         )
 
     def beanify(self) -> BeancountTransaction:
@@ -199,7 +215,7 @@ class TransferBeanifier(YNABBeanifier):
             -self.txn.amount,
             src_accs=src_accs,
             dst_accs=dst_accs,
-            meta=self._get_meta() if include_meta else None
+            meta_dst=self._get_meta() if include_meta else None
         )
 
     def beanify(self) -> BeancountTransaction:
@@ -254,28 +270,45 @@ class InvestmentBeanifier(YNABBeanifier):
                 break
         assert fitxn is not None
 
-        if self.txn.account_name in self.settings.xfer_ynab_financial_instrument_accounts and not self.txn.transfer_account_id:
-            src_acc = self.settings.mapper_accounts.map(fitxn.src_acc or fitxn.symbol or fitxn.xcurr_a)
+        if (
+            isinstance(fitxn, DividendsTransaction)
+            or isinstance(fitxn, CouponTransaction)
+        ):
+            meta = dict()
+            meta['asset'] = fitxn.symbol
+            if include_meta:
+                meta.update(self._get_meta())
+            return self._postify(
+                amount=self.txn.amount,
+                src_accs=[self.settings.mapper_inflows.map(self.txn.payee_name)],
+                dst_accs=[self.settings.mapper_accounts.map(self.txn.account_name)],
+                meta_src=meta,
+            )
+        else:
             dst_acc = self.settings.mapper_accounts.map(fitxn.dst_acc or fitxn.symbol or fitxn.xcurr_a)
-        elif self.txn.account_name not in self.settings.xfer_ynab_financial_instrument_accounts:
-            src_acc = self.settings.mapper_accounts.map(fitxn.src_acc or self.txn.account_name)
-            dst_acc = self.settings.mapper_accounts.map(fitxn.dst_acc or fitxn.symbol or fitxn.xcurr_a)
-
-        pnl_acc = None
-        if isinstance(fitxn, SellTransaction) or isinstance(fitxn, MaturityTransaction):
-            pnl_acc = self.settings.mapper_pnl.map(dst_acc)
-
-        return self._postify_fi_txn(
-            date=self.txn.date,
-            symbol=fitxn.symbol,
-            quantity=fitxn.quantity,
-            unit_price=fitxn.unit_price,
-            currency=fitxn.currency,
-            src_acc=src_acc,
-            dst_acc=dst_acc,
-            meta=self._get_meta() if include_meta else None,
-            pnl_acc=pnl_acc
-        )
+            src_acc = None
+            if isinstance(fitxn, StartingBalanceTransaction):
+                src_acc = self.settings.mapper_inflows.map(self.txn.payee_name)
+            else:
+                src_acc = self.settings.mapper_accounts.map(fitxn.src_acc or self.txn.account_name)
+            pnl_acc = None
+            if isinstance(fitxn, SellTransaction) or isinstance(fitxn, MaturityTransaction):
+                pnl_acc = self.settings.mapper_pnl.map(dst_acc)
+            quantity = fitxn.quantity
+            if isinstance(fitxn, ExchangeTransaction) and self.txn.amount > 0:
+                quantity = -quantity
+                pnl_acc = self.settings.mapper_pnl.map(dst_acc)
+            return self._postify_fi_txn(
+                date=self.txn.date,
+                symbol=fitxn.symbol,
+                quantity=quantity,
+                unit_price=fitxn.unit_price,
+                currency=fitxn.currency,
+                src_acc=src_acc,
+                dst_acc=dst_acc,
+                meta=self._get_meta() if include_meta else None,
+                pnl_acc=pnl_acc
+            )
 
     def beanify(self) -> BeancountTransaction:
         builder = BeanTransactionBuilder()
